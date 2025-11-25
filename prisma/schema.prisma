@@ -5,11 +5,34 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
+}
+
+
+
+model Proyecto {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  nombre      String
+  descripcion String?
+  tipoProyectoId String @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  tipoProyecto TipoProyecto @relation("ProyectoATipoProyecto",fields: [tipoProyectoId], references: [id])
+}
+
+model TipoProyecto {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  nombre      String
+  descripcion String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  proyectos   Proyecto[]  @relation("ProyectoATipoProyecto")
 }
