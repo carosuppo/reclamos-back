@@ -9,9 +9,7 @@ import { toClienteUpdateData } from './mappers/toClienteParcial.mapper';
 
 @Injectable()
 export class ClienteService {
-  constructor(
-    private readonly clienteRepository: ClienteRepository
-  ) {}
+  constructor(private readonly clienteRepository: ClienteRepository) {}
 
   async register(registerDto: RegisterDto): Promise<ClienteDto> {
     try {
@@ -25,7 +23,7 @@ export class ClienteService {
 
   async findOne(email: string): Promise<ClienteDto | null> {
     const cliente = await this.clienteRepository.findByEmail(email);
-    if(!cliente) {
+    if (!cliente) {
       return null;
     }
     return toClienteDto(cliente);

@@ -12,22 +12,20 @@ export class AuthController {
 
   @Post('register-cliente')
   registrarCliente(
-    @Body() registerDto: RegisterDto
+    @Body() registerDto: RegisterDto,
   ): Promise<{ access_token: string }> {
     return this.authService.registerCliente(registerDto);
   }
 
   @Post('register-empleado')
   registrarEmpleado(
-    @Body() registerDto: RegisterDto
-  ): Promise<{ access_token: string}> {
+    @Body() registerDto: RegisterDto,
+  ): Promise<{ access_token: string }> {
     return this.authService.registerEmpleado(registerDto);
   }
 
   @Post('login')
-  login(
-    @Body() loginDto: LoginDto
-  ): Promise<{ access_token: string }> {
+  login(@Body() loginDto: LoginDto): Promise<{ access_token: string }> {
     return this.authService.login(loginDto);
   }
 
@@ -38,4 +36,3 @@ export class AuthController {
     return 'Turnos del cliente';
   }
 }
-

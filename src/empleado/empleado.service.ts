@@ -9,9 +9,7 @@ import { toEmpleadoUpdateData } from './mappers/toEmpleadoParcial.mapper';
 
 @Injectable()
 export class EmpleadoService {
-  constructor(
-    private readonly empleadoRepository: EmpleadoRepository
-  ) {}
+  constructor(private readonly empleadoRepository: EmpleadoRepository) {}
 
   async register(registerDto: RegisterDto): Promise<EmpleadoDto> {
     try {
@@ -28,21 +26,21 @@ export class EmpleadoService {
     if (!existing) {
       throw new BadRequestException('El usuario no existe.');
     }
-  
+
     if (dto.email) {
       const emailInUse = await this.empleadoRepository.findByEmail(dto.email);
       if (emailInUse && emailInUse.id !== id) {
         throw new BadRequestException('El email ya está en uso.');
       }
     }
-  
+
     const updatedData = toEmpleadoUpdateData(dto);
     return this.empleadoRepository.update(id, updatedData);
   }
 
   async findOne(email: string): Promise<EmpleadoDto | null> {
     const empleado = await this.empleadoRepository.findByEmail(email);
-    if(!empleado) {
+    if (!empleado) {
       return null;
     }
     return toEmpleadoDto(empleado);
