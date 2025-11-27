@@ -21,16 +21,20 @@ export class AuthService {
   constructor(
     private readonly clienteService: ClienteService,
     private readonly empleadoService: EmpleadoService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
-  async registerCliente(registerDto: RegisterDto): Promise<{ access_token: string }> {
+  async registerCliente(
+    registerDto: RegisterDto,
+  ): Promise<{ access_token: string }> {
     await this.validarEmailDisponible(registerDto.email);
     await this.transformarContraseña(registerDto);
     const cliente = await this.clienteService.register(registerDto);
     return this.firmarToken(cliente.id, 'CLIENTE');
   }
 
-  async registerEmpleado(registerDto: RegisterDto): Promise<{ access_token: string }> {
+  async registerEmpleado(
+    registerDto: RegisterDto,
+  ): Promise<{ access_token: string }> {
     await this.validarEmailDisponible(registerDto.email);
     await this.transformarContraseña(registerDto);
     const empleado = await this.empleadoService.register(registerDto);
@@ -85,9 +89,9 @@ export class AuthService {
   }
 
   async validarEmailDisponible(email: string): Promise<void> {
-    const existeCliente = await this.validarCliente(email)
+    const existeCliente = await this.validarCliente(email);
 
-    const existeEmpleado = await this.validarEmpleado(email)
+    const existeEmpleado = await this.validarEmpleado(email);
 
     if (existeCliente != null || existeEmpleado != null) {
       throw new BadRequestException('El email ya está en uso.');
@@ -108,10 +112,13 @@ export class AuthService {
     registerDto.contraseña = await bcryptSafe.hash(registerDto.contraseña, 10);
   }
 
-  private async firmarToken(id: string, role: string): Promise<{ access_token: string }> {
+  private async firmarToken(
+    id: string,
+    role: string,
+  ): Promise<{ access_token: string }> {
     const payload = { sub: id, role };
     return {
-      access_token: await this.jwtService.signAsync(payload)
+      access_token: await this.jwtService.signAsync(payload),
     };
   }
 }

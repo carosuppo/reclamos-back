@@ -20,9 +20,9 @@ export class EmpleadoService {
       return toEmpleadoDto(empleado);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        throw new Error(`Error al crear el cliente: ${error.message}`);
+        throw new Error(`Error al crear el empleado: ${error.message}`);
       }
-      throw new Error('Error al crear el cliente: error desconocido');
+      throw new Error('Error al crear el empleado: error desconocido');
     }
   }
 
@@ -52,7 +52,7 @@ export class EmpleadoService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} cliente`;
+    return `This action removes a #${id} empleado`;
   }
 
   async findForAuth(email: string): Promise<AuthDto | null> {
