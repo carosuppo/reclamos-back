@@ -16,8 +16,8 @@ export class ReclamoService {
 
   async create(dto: CreateReclamoDto, userId: string): Promise<ReclamoDto> {
     // 1. validar tipo de reclamo
-    const tipo = await this.tipoReclamoService.findOne(dto.tipoReclamoId);
-    if (!tipo) {
+    const existeTipo = await this.tipoReclamoService.findOne(dto.tipoReclamoId);
+    if (!existeTipo) {
       throw new BadRequestException('Tipo de reclamo inexistente.');
     }
 
