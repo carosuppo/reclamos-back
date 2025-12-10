@@ -1,10 +1,12 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { TipoProyectoService } from './tipo-proyecto.service';
 import {
   SwaggerFindAllTipoProyecto,
   SwaggerFindOneTipoProyecto,
 } from './swagger/tipo-proyecto.swagger';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('tipo-proyecto')
 export class TipoProyectoController {
   constructor(private readonly service: TipoProyectoService) {}

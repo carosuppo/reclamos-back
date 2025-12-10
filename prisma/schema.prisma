@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,26 +7,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Cliente {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  email       String     @unique
+  contraseña String
+  nombre      String
+  telefono    String
+  role        String
+  proyectos   Proyecto[] @relation("ProyectoACliente")
 
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
 
-model Proyecto {
+model Empleado {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  email       String @unique
+  contraseña String
+  nombre      String
+  telefono    String
+  role        String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Reclamo {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  tipoReclamoId String         @db.ObjectId
+  TipoReclamo   TipoReclamo    @relation(fields: [tipoReclamoId], references: [id])
+  prioridad     String
+  criticidad    String
+  archivo       String?
+  descripcion   String
+  cambioEstado  CambioEstado[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+}
+
+model TipoReclamo {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   nombre      String
   descripcion String?
+  reclamos    Reclamo[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Area {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  nombre       String
+  descripcion  String?
+  cambioEstado CambioEstado[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+}
+
+model CambioEstado {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  reclamoId   String    @db.ObjectId
+  reclamo     Reclamo   @relation(fields: [reclamoId], references: [id])
+  areaId      String    @db.ObjectId
+  area        Area      @relation(fields: [areaId], references: [id])
+  fechaInicio DateTime  @default(now())
+  fechaFin    DateTime?
+  descripcion String?
+  estado      String
+}
+
+model Proyecto {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  clienteId      String @db.ObjectId
   tipoProyectoId String @db.ObjectId
+
+  nombre      String
+  descripcion String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  tipoProyecto TipoProyecto @relation("ProyectoATipoProyecto",fields: [tipoProyectoId], references: [id])
+  cliente      Cliente      @relation("ProyectoACliente", fields: [clienteId], references: [id])
+  tipoProyecto TipoProyecto @relation("ProyectoATipoProyecto", fields: [tipoProyectoId], references: [id])
 }
 
 model TipoProyecto {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   nombre      String
   descripcion String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   deletedAt   DateTime?
-  proyectos   Proyecto[]  @relation("ProyectoATipoProyecto")
+  proyectos   Proyecto[] @relation("ProyectoATipoProyecto")
 }

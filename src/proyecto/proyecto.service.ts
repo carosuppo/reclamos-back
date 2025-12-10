@@ -14,16 +14,16 @@ export class ProyectoService {
     private readonly validator: ProyectoValidador,
   ) {}
 
-  async create(dto: CreateProyectoDto) {
+  async create(dto: CreateProyectoDto, user: string) {
     await this.validator.validate(dto.tipoProyectoId);
 
-    const proyectoInterfaz = aProyectoInterfaz(dto) as ProyectoInterfaz;
+    const proyectoInterfaz = aProyectoInterfaz(dto, user) as ProyectoInterfaz;
     const proyecto = await this.repository.create(proyectoInterfaz);
     return aProyectoDto(proyecto);
   }
 
-  async findAll() {
-    const proyectos = await this.repository.findAll();
+  async findAll(user: string) {
+    const proyectos = await this.repository.findAll(user);
     return proyectos.map(aProyectoDto);
   }
 
@@ -37,8 +37,11 @@ export class ProyectoService {
     return aProyectoDto(proyecto);
   }
 
-  async findByTipoProyecto(tipoProyectoId: string) {
-    const proyectos = await this.repository.findByTipoProyecto(tipoProyectoId);
+  async findByTipoProyecto(tipoProyectoId: string, user: string) {
+    const proyectos = await this.repository.findByTipoProyecto(
+      tipoProyectoId,
+      user,
+    );
 
     if (!proyectos) {
       throw new NotFoundException('No hay proyectos con este tipo de proyecto');
@@ -47,12 +50,12 @@ export class ProyectoService {
     return proyectos.map(aProyectoDto);
   }
 
-  async update(id: string, dto: UpdateProyectoDto) {
+  async update(id: string, dto: UpdateProyectoDto, user: string) {
     if (dto.tipoProyectoId) {
       await this.validator.validate(dto.tipoProyectoId);
     }
 
-    const proyectoInterfaz = aProyectoInterfaz(dto);
+    const proyectoInterfaz = aProyectoInterfaz(dto, user);
     const proyecto = await this.repository.update(id, proyectoInterfaz);
     return aProyectoDto(proyecto);
   }

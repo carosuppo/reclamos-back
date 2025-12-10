@@ -1,4 +1,4 @@
-import prisma from '../src/lib/db';
+import prisma from '../../src/lib/db';
 
 async function main() {
   // Primero borramos proyectos porque dependen de TipoProyecto

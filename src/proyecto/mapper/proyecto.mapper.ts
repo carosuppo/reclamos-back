@@ -16,9 +16,11 @@ export function aProyectoDto(proyecto: Proyecto): ProyectoRespuestaDto {
 
 export function aProyectoInterfaz(
   data: Partial<CreateProyectoDto>,
+  user: string,
 ): Partial<ProyectoInterfaz> {
   return {
     nombre: data.nombre,
+    clienteId: user,
     descripcion: data.descripcion,
     tipoProyectoId: data.tipoProyectoId,
   };

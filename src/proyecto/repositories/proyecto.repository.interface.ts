@@ -3,9 +3,9 @@ import { UpdateProyectoDto } from '../dto/update-proyecto.dto';
 import { Proyecto } from '@prisma/client';
 
 export interface IProyectoRepository {
-  findAll(): Promise<Proyecto[]>;
+  findAll(user: string): Promise<Proyecto[]>;
   findOne(id: string): Promise<Proyecto | null>;
-  findByTipoProyecto(tipoProyectoId: string): Promise<Proyecto[]>;
+  findByTipoProyecto(tipoProyectoId: string, user: string): Promise<Proyecto[]>;
   create(createProyectoDto: CreateProyectoDto): Promise<Proyecto>;
   update(id: string, updateProyectoDto: UpdateProyectoDto): Promise<Proyecto>;
   remove(id: string): Promise<boolean>;
