@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { ITipoProyectoRepository } from './repositories/tipo-proyecto.repository.interface';
-import { aTipoProyectoDto } from './mapper/tipo-proyecto.mapper';
+import { aTipoProyectoDto } from './mappers/tipo-proyecto.mapper';
 
 @Injectable()
 export class TipoProyectoService {

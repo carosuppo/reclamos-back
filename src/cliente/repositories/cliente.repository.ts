@@ -2,14 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { IClienteRepository } from './cliente.repository.interface';
 import prisma from '../../lib/db';
 import { Cliente } from '@prisma/client';
-import { UsuarioCreateData } from 'src/common/interfaces/usuario-create.interface';
 import { ClienteUpdateData } from '../interfaces/cliente-update.interface';
+import { ClienteCreateData } from '../interfaces/cliente-create.interface';
 
 @Injectable()
 export class ClienteRepository implements IClienteRepository {
   constructor() {}
 
-  async create(data: UsuarioCreateData): Promise<Cliente> {
+  async create(data: ClienteCreateData): Promise<Cliente> {
     try {
       return await prisma.cliente.create({ data });
     } catch (error) {

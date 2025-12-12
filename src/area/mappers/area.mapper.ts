@@ -1,5 +1,5 @@
 import { Area } from '@prisma/client';
-import { AreaDto } from '../dto/area.dto';
+import { AreaDto } from '../dtos/area.dto';
 
 export class AreaMapper {
   static toAreaDto(area: Area): AreaDto {

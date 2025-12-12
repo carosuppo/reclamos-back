@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { CreateReclamoDto } from './dto/create-reclamo.dto';
-import { UpdateReclamoDto } from './dto/update-reclamo.dto';
+import { Inject, Injectable } from '@nestjs/common';
+import { CreateReclamoDto } from './dtos/create-reclamo.dto';
+import type { IReclamoRepository } from './repositories/reclamo.repository.interface';
+import { ReclamoDto } from './dtos/reclamo.dto';
+import { toReclamoCreateData } from './mappers/toReclamoEntity';
+import { toReclamoDto } from './mappers/toReclamoDto';
+import { ReclamoValidator } from './validators/reclamo.validator';
 
 @Injectable()
 export class ReclamoService {
-  create(createReclamoDto: CreateReclamoDto) {
-    return 'This action adds a new reclamo';
+  constructor(
+    @Inject('IReclamoRepository')
+    private readonly repository: IReclamoRepository,
+    private readonly validator: ReclamoValidator,
+  ) {}
+
+  async create(dto: CreateReclamoDto, userId: string): Promise<ReclamoDto> {
+    // 1. validar tipo de reclamo
+    await this.validator.validateTipoReclamo(dto.tipoReclamoId);
+
+    // 2. validar proyecto
+    await this.validator.validateProyecto(dto.proyectoId);
+
+    // 3. crear el reclamo base
+    const data = toReclamoCreateData(dto, userId);
+    const reclamo = await this.repository.create(data, userId);
+    return toReclamoDto(reclamo);
   }
 
-  findAll() {
-    return `This action returns all reclamo`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} reclamo`;
-  }
-
-  update(id: number, updateReclamoDto: UpdateReclamoDto) {
-    return `This action updates a #${id} reclamo`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} reclamo`;
+  async findByCliente(clienteId: string): Promise<ReclamoDto[]> {
+    const reclamos = await this.repository.findByCliente(clienteId);
+    return reclamos.map(toReclamoDto);
   }
 }

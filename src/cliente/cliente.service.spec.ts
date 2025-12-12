@@ -2,8 +2,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { ClienteService } from './cliente.service';
 import { ClienteRepository } from './repositories/cliente.repository';
-import { RegisterDto } from 'src/auth/dto/register.dto';
-import { UpdateClienteDto } from './dto/update.cliente.dto';
+import { RegisterDto } from 'src/auth/dtos/register.dto';
+import { UpdateClienteDto } from './dtos/update.cliente.dto';
 import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
 import { Cliente } from '@prisma/client';
 

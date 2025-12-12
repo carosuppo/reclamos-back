@@ -2,8 +2,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { EmpleadoService } from './empleado.service';
 import { EmpleadoRepository } from './repositories/empleado.repository';
-import { RegisterDto } from 'src/auth/dto/register.dto';
-import { UpdateEmpleadoDto } from './dto/update.empleado.dto';
+import { RegisterDto } from 'src/auth/dtos/register.dto';
+import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
 import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
 import { Empleado } from '@prisma/client';
 

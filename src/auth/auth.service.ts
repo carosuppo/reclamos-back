@@ -1,14 +1,14 @@
 /* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dtos/register.dto';
+import { LoginDto } from './dtos/login.dto';
 import { EmpleadoService } from 'src/empleado/empleado.service';
 import { ClienteService } from 'src/cliente/cliente.service';
-import { ClienteDto } from 'src/cliente/dto/cliente.dto';
-import { EmpleadoDto } from 'src/empleado/dto/empleado.dto';
+import { ClienteDto } from 'src/cliente/dtos/cliente.dto';
+import { EmpleadoDto } from 'src/empleado/dtos/empleado.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Roles } from 'src/common/enums/roles.enum';
+import { Role } from 'src/common/enums/role.enum';
 
 type BcryptTyped = {
   hash: (data: string | Buffer, saltOrRounds: number | string) => Promise<string>;
@@ -30,7 +30,7 @@ export class AuthService {
     await this.validarEmailDisponible(registerDto.email);
     await this.transformarContraseña(registerDto);
     const cliente = await this.clienteService.register(registerDto);
-    return this.firmarToken(cliente.id, Roles.CLIENTE);
+    return this.firmarToken(cliente.id, Role.CLIENTE);
   }
 
   async registerEmpleado(
@@ -39,7 +39,7 @@ export class AuthService {
     await this.validarEmailDisponible(registerDto.email);
     await this.transformarContraseña(registerDto);
     const empleado = await this.empleadoService.register(registerDto);
-    return this.firmarToken(empleado.id, Roles.EMPLEADO);
+    return this.firmarToken(empleado.id, Role.EMPLEADO);
   }
 
   async login(loginDto: LoginDto): Promise<{ access_token: string }> {

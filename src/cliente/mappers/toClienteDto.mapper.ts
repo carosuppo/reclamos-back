@@ -1,5 +1,5 @@
 import { Cliente } from '@prisma/client';
-import { ClienteDto } from '../dto/cliente.dto';
+import { ClienteDto } from '../dtos/cliente.dto';
 
 export function toClienteDto(cliente: Cliente): ClienteDto {
   const dto: ClienteDto = {
@@ -7,7 +7,6 @@ export function toClienteDto(cliente: Cliente): ClienteDto {
     email: cliente.email,
     telefono: cliente.telefono,
     nombre: cliente.nombre,
-    role: cliente.role,
   };
   return dto;
 }

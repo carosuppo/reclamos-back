@@ -8,10 +8,10 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AreaService } from './area.service';
-import { CreateAreaDto } from './dto/create-area.dto';
-import { UpdateAreaDto } from './dto/update-area.dto';
+import { CreateAreaDto } from './dtos/create-area.dto';
+import { UpdateAreaDto } from './dtos/update-area.dto';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
-import { AreaDto } from './dto/area.dto';
+import { AreaDto } from './dtos/area.dto';
 
 @Controller('area')
 export class AreaController {
