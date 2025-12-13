@@ -6,7 +6,11 @@ import { ClienteRepository } from './repositories/cliente.repository';
 @Module({
   imports: [],
   controllers: [ClienteController],
-  providers: [ClienteService, ClienteRepository],
+  providers: [
+    ClienteService,
+    ClienteRepository,
+    { provide: 'IClienteRepository', useClass: ClienteRepository },
+  ],
   exports: [ClienteService],
 })
 export class ClienteModule {}

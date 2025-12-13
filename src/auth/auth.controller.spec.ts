@@ -6,15 +6,16 @@ import { LoginDto } from './dtos/login.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let authService: jest.Mocked<AuthService>;
+
+  // Mock del AuthService
+  const mockAuthService = {
+    registerCliente: jest.fn(),
+    registerEmpleado: jest.fn(),
+    login: jest.fn(),
+    firmarToken: jest.fn(), // por si lo querés testear indirectamente
+  };
 
   beforeEach(async () => {
-    const mockAuthService = {
-      registerCliente: jest.fn(),
-      registerEmpleado: jest.fn(),
-      login: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
@@ -26,62 +27,91 @@ describe('AuthController', () => {
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
-    authService = module.get(AuthService);
   });
 
-  describe('registrarCliente', () => {
-    it('debería registrar un cliente y devolver access_token', async () => {
-      const dto: RegisterDto = {
-        email: 'test@example.com',
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('debe estar definido', () => {
+    expect(controller).toBeDefined();
+  });
+
+  describe('POST /auth/register-cliente', () => {
+    it('debe registrar un cliente y devolver access_token', async () => {
+      const registerDto: RegisterDto = {
+        email: 'cliente@test.com',
         contraseña: '123456',
-        nombre: 'Juan',
-        telefono: '123456789',
+        nombre: 'Juan Pérez',
+        telefono: '111222333',
       };
 
-      const result = { access_token: 'fake-token' };
-      authService.registerCliente.mockResolvedValue(result);
+      const expectedResult = { access_token: 'jwt-cliente-123' };
 
-      const response = await controller.registrarCliente(dto);
+      mockAuthService.registerCliente.mockResolvedValue(expectedResult);
 
-      expect(authService.registerCliente).toHaveBeenCalledWith(dto);
-      expect(response).toEqual(result);
+      const result = await controller.registrarCliente(registerDto);
+
+      expect(mockAuthService.registerCliente).toHaveBeenCalledWith(registerDto);
+      expect(result).toEqual(expectedResult);
     });
   });
 
-  describe('registrarEmpleado', () => {
-    it('debería registrar un empleado y devolver access_token', async () => {
-      const dto: RegisterDto = {
-        email: 'empleado@example.com',
-        contraseña: 'abcdef',
-        nombre: 'Carlos',
-        telefono: '987654321',
+  describe('POST /auth/register-empleado', () => {
+    it('debe registrar un empleado y devolver access_token', async () => {
+      const registerDto: RegisterDto = {
+        email: 'empleado@test.com',
+        contraseña: 'abc123',
+        nombre: 'Ana Gómez',
+        telefono: '999888777',
       };
 
-      const result = { access_token: 'token-empleado' };
-      authService.registerEmpleado.mockResolvedValue(result);
+      const expectedResult = { access_token: 'jwt-empleado-456' };
 
-      const response = await controller.registrarEmpleado(dto);
+      mockAuthService.registerEmpleado.mockResolvedValue(expectedResult);
 
-      expect(authService.registerEmpleado).toHaveBeenCalledWith(dto);
-      expect(response).toEqual(result);
+      const result = await controller.registrarEmpleado(registerDto);
+
+      expect(mockAuthService.registerEmpleado).toHaveBeenCalledWith(
+        registerDto,
+      );
+      expect(result).toEqual(expectedResult);
     });
   });
 
-  describe('login', () => {
-    it('debería iniciar sesión correctamente', async () => {
-      const dto: LoginDto = {
-        email: 'usuario@example.com',
-        contraseña: 'password',
+  describe('POST /auth/login', () => {
+    it('debe iniciar sesión y devolver access_token', async () => {
+      const loginDto: LoginDto = {
+        email: 'usuario@test.com',
+        contraseña: '123456',
       };
 
-      const result = { access_token: 'login-token' };
-      authService.login.mockResolvedValue(result);
+      const expectedResult = { access_token: 'jwt-login-789' };
 
-      const response = await controller.login(dto);
+      mockAuthService.login.mockResolvedValue(expectedResult);
 
-      expect(authService.login).toHaveBeenCalledWith(dto);
-      expect(response).toEqual(result);
+      const result = await controller.login(loginDto);
+
+      expect(mockAuthService.login).toHaveBeenCalledWith(loginDto);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  // Opcional: casos de error (el controller solo pasa la excepción)
+  describe('Errores propagados desde el service', () => {
+    it('debe propagar BadRequestException en register-cliente si email duplicado', async () => {
+      const registerDto: RegisterDto = {
+        email: 'duplicado@test.com',
+        contraseña: '123',
+        nombre: 'Test',
+        telefono: '123456',
+      };
+
+      mockAuthService.registerCliente.mockRejectedValue(
+        new Error('El email ya está en uso'), // o BadRequestException si lo importás
+      );
+
+      await expect(controller.registrarCliente(registerDto)).rejects.toThrow();
     });
   });
 });
-

@@ -46,10 +46,6 @@ describe('AuthService', () => {
     jest.clearAllMocks();
   });
 
-  // --------------------------
-  // REGISTER CLIENTE
-  // --------------------------
-
   it('registerCliente debe registrar cliente y devolver token', async () => {
     mockClienteService.findOne.mockResolvedValue(null);
     mockEmpleadoService.findOne.mockResolvedValue(null);
@@ -58,16 +54,17 @@ describe('AuthService', () => {
     mockClienteService.register.mockResolvedValue({ id: 'ABC123' });
     mockJwtService.signAsync.mockResolvedValue('token123');
 
-    const dto = { email: 'test@mail.com', contraseña: '12345', nombre: 'Juan', telefono: '123456789' };
+    const dto = {
+      email: 'test@mail.com',
+      contraseña: '12345',
+      nombre: 'Juan',
+      telefono: '123456789',
+    };
     const result = await service.registerCliente(dto);
 
     expect(result).toEqual({ access_token: 'token123' });
     expect(mockClienteService.register).toHaveBeenCalled();
   });
-
-  // --------------------------
-  // REGISTER EMPLEADO
-  // --------------------------
 
   it('registerEmpleado debe registrar empleado y devolver token', async () => {
     mockClienteService.findOne.mockResolvedValue(null);
@@ -77,16 +74,17 @@ describe('AuthService', () => {
     mockEmpleadoService.register.mockResolvedValue({ id: 'EMP999' });
     mockJwtService.signAsync.mockResolvedValue('tokenEMP');
 
-    const dto = { email: 'empleado@mail.com', contraseña: 'abc', nombre: 'Juan', telefono: '123456789' };
+    const dto = {
+      email: 'empleado@mail.com',
+      contraseña: 'abc',
+      nombre: 'Juan',
+      telefono: '123456789',
+    };
     const result = await service.registerEmpleado(dto);
 
     expect(result).toEqual({ access_token: 'tokenEMP' });
     expect(mockEmpleadoService.register).toHaveBeenCalled();
   });
-
-  // --------------------------
-  // EMAIL YA EN USO
-  // --------------------------
 
   it('validarEmailDisponible debe lanzar error si el email existe', async () => {
     mockClienteService.findOne.mockResolvedValue({ id: 'X' });
@@ -96,10 +94,6 @@ describe('AuthService', () => {
       BadRequestException,
     );
   });
-
-  // --------------------------
-  // LOGIN CLIENTE
-  // --------------------------
 
   it('login debe loguear cliente y devolver token', async () => {
     mockClienteService.findForAuth.mockResolvedValue({
@@ -118,10 +112,6 @@ describe('AuthService', () => {
 
     expect(result).toEqual({ access_token: 'tokC1' });
   });
-
-  // --------------------------
-  // LOGIN EMPLEADO
-  // --------------------------
 
   it('login debe loguear empleado y devolver token', async () => {
     mockClienteService.findForAuth.mockResolvedValue(null);
@@ -142,10 +132,6 @@ describe('AuthService', () => {
 
     expect(result).toEqual({ access_token: 'tokE1' });
   });
-
-  // --------------------------
-  // LOGIN FALLIDO
-  // --------------------------
 
   it('login debe fallar si las credenciales son inválidas', async () => {
     mockClienteService.findForAuth.mockResolvedValue(null);
@@ -170,14 +156,10 @@ describe('AuthService', () => {
     ).rejects.toThrow(UnauthorizedException);
   });
 
-  // --------------------------
-  // TRANSFORMAR CONTRASEÑA
-  // --------------------------
-
   it('transformarContraseña debe hashear la contraseña', async () => {
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashed999');
 
-    const dto = { contraseña: '111' } as any;
+    const dto = { contraseña: '111' };
 
     // @ts-expect-error acceso interno
     await service['transformarContraseña'](dto);
@@ -185,14 +167,10 @@ describe('AuthService', () => {
     expect(dto.contraseña).toBe('hashed999');
   });
 
-  // --------------------------
-  // FIRMAR TOKEN
-  // --------------------------
-
   it('firmarToken debe generar un token JWT', async () => {
     mockJwtService.signAsync.mockResolvedValue('jwt123');
 
-    const result = await (service as any).firmarToken('ID77', 'CLIENTE');
+    const result = await service.firmarToken('ID77', 'CLIENTE');
 
     expect(result).toEqual({ access_token: 'jwt123' });
   });

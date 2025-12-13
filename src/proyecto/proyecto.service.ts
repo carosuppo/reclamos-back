@@ -43,7 +43,7 @@ export class ProyectoService {
       user,
     );
 
-    if (!proyectos) {
+    if (proyectos.length === 0) {
       throw new NotFoundException('No hay proyectos con este tipo de proyecto');
     }
 

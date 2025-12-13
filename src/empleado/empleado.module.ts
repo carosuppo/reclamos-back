@@ -7,7 +7,11 @@ import { AreaModule } from 'src/area/area.module';
 @Module({
   imports: [AreaModule],
   controllers: [EmpleadoController],
-  providers: [EmpleadoService, EmpleadoRepository],
+  providers: [
+    EmpleadoService,
+    EmpleadoRepository,
+    { provide: 'IEmpleadoRepository', useClass: EmpleadoRepository },
+  ],
   exports: [EmpleadoService],
 })
 export class EmpleadoModule {}

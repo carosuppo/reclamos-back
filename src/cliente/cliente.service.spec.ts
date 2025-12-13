@@ -1,192 +1,199 @@
-/* eslint-disable prettier/prettier */
-import { BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { ClienteService } from './cliente.service';
-import { ClienteRepository } from './repositories/cliente.repository';
 import { RegisterDto } from 'src/auth/dtos/register.dto';
 import { UpdateClienteDto } from './dtos/update.cliente.dto';
+import { BadRequestException } from '@nestjs/common';
+import { toClienteDto } from './mappers/toClienteDto.mapper';
+import { toClienteEntity } from './mappers/toClienteEntity.mapper';
+import { toClienteUpdateData } from './mappers/toClienteParcial.mapper';
 import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
-import { Cliente } from '@prisma/client';
+import { Role } from 'src/common/enums/role.enum';
 
-jest.mock('src/common/mappers/toUsuarioEntity.mapper', () => ({
-  toUsuarioEntity: (dto: any) => ({ ...dto, mock: true }),
-}));
-
-jest.mock('./mappers/toClienteDto.mapper', () => ({
-  toClienteDto: (ent: any) => ({ ...ent, dto: true }),
-}));
-
-jest.mock('./mappers/toClienteParcial.mapper', () => ({
-  toClienteUpdateData: (dto: any) => ({ ...dto, parcial: true }),
-}));
+const mockClienteEntity = {
+  id: 'cli-123',
+  email: 'test@cliente.com',
+  contraseña: 'hashed123',
+  nombre: 'Juan Pérez',
+  telefono: '3511234567',
+  role: Role.CLIENTE,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  deletedAt: null,
+};
 
 describe('ClienteService', () => {
   let service: ClienteService;
-  let repo: jest.Mocked<ClienteRepository>;
 
-  beforeEach(() => {
-    repo = {
-      create: jest.fn(),
-      findByEmail: jest.fn(),
-      findById: jest.fn(),
-      update: jest.fn(),
-    } as any;
-
-    service = new ClienteService(repo);
-  });
-
-  // --------------------------------------------------------
-  // register()
-  // --------------------------------------------------------
-  it('register debe crear cliente y devolver dto', async () => {
-    const dto: RegisterDto = {
-      email: 'mail@test.com',
-      contraseña: '1234',
-      nombre: 'pepe',
-      telefono: '351'
-    };
-
-    repo.create = jest.fn().mockResolvedValue({
-      id: '1',
-      email: dto.email
-    } as Cliente);
-
-    const result = await service.register(dto);
-
-    expect(result).toEqual({
-      id: '1',
-      email: dto.email,
-      dto: true
-    });
-
-    const createMock = repo.create;
-    expect(createMock).toHaveBeenCalled();
-  });
-
-  it('register debe manejar error y lanzar mensaje descriptivo', async () => {
-    const dto: RegisterDto = {
-      email: 'mail@test.com',
-      contraseña: '1234',
-      nombre: 'pepe',
-      telefono: '351'
-    };
-
-    repo.create.mockRejectedValue(new Error('falló'));
-
-    await expect(service.register(dto))
-      .rejects
-      .toThrow('Error al crear el cliente: falló');
-  });
-
-  // --------------------------------------------------------
-  // findOne()
-  // --------------------------------------------------------
-  it('findOne debe devolver null si no existe', async () => {
-    repo.findByEmail.mockResolvedValue(null);
-
-    const result = await service.findOne('a@a.com');
-    expect(result).toBeNull();
-  });
-
-  it('findOne debe mapear y devolver cliente', async () => {
-    repo.findByEmail.mockResolvedValue({ id: '77', email: 'a@a.com' } as Partial<Cliente> as Cliente);
-
-    const result = await service.findOne('a@a.com');
-    expect(result).toEqual({ id: '77', email: 'a@a.com', dto: true });
-  });
-
-  // --------------------------------------------------------
-  // update()
-  // --------------------------------------------------------
-  it('update debe lanzar error si el cliente no existe', async () => {
-    repo.findById.mockResolvedValue(null);
-
-    await expect(service.update('10', {} as UpdateClienteDto))
-      .rejects
-      .toThrow(BadRequestException);
-  });
-
-  it('update debe rechazar email duplicado', async () => {
-    repo.findById.mockResolvedValue({
-      id: '10'
-    } as Partial<Cliente> as Cliente);
-
-    repo.findByEmail.mockResolvedValue({ id: '20', email: 'otro@mail.com' } as Partial<Cliente> as Cliente);
-
-    const dto: UpdateClienteDto = { email: 'otro@mail.com' };
-
-    await expect(service.update('10', dto))
-      .rejects
-      .toThrow('El email ya está en uso.');
-  });
-
-  it('update debe actualizar correctamente', async () => {
-    repo.findById.mockResolvedValue({
-      id: '10'
-    } as Partial<Cliente> as Cliente);
-
-    repo.findByEmail.mockResolvedValue(null);
-
-    repo.update.mockResolvedValue({
-      id: '10',
-      nombre: 'nuevo'
-    } as Partial<Cliente> as Cliente);
-
-    const dto: UpdateClienteDto = { nombre: 'nuevo' };
-
-    const result = await service.update('10', dto);
-
-    expect(result).toEqual({ id: '10', nombre: 'nuevo' });
-    expect(repo.update).toHaveBeenCalledWith('10', { nombre: 'nuevo', parcial: true });
-  });
-
-  // --------------------------------------------------------
-  // findForAuth()
-  // --------------------------------------------------------
-  it('findForAuth debe devolver null si no existe', async () => {
-    repo.findByEmail.mockResolvedValue(null);
-
-    const result = await service.findForAuth('correo@mail.com');
-
-    expect(result).toBeNull();
-  });
-
-it('findForAuth debe devolver AuthDto usando AuthMapper', async () => {
-  // Mock del cliente que devuelve el repo
-  const fakeCliente: Partial<Cliente> = {
-    id: "41bbgsf77",
-    email: 'x',
-    contraseña: 'y',
-    role: 'CLIENTE'
+  const mockClienteRepository = {
+    create: jest.fn(),
+    findByEmail: jest.fn(),
+    findById: jest.fn(),
+    update: jest.fn(),
   };
 
-  repo.findByEmail.mockResolvedValue(fakeCliente as Cliente);
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ClienteService,
+        {
+          provide: 'IClienteRepository',
+          useValue: mockClienteRepository,
+        },
+      ],
+    }).compile();
 
-  // Mock del mapper
-  const spy = jest.spyOn(AuthMapper, 'toAuthDto').mockReturnValue({
-    id: "41bbgsf77",
-    email: 'x',
-    contraseña: 'y',
-    role: 'CLIENTE'
+    service = module.get<ClienteService>(ClienteService);
   });
 
-  const result = await service.findForAuth('x');
-
-  expect(result).toEqual({
-    id: "41bbgsf77",
-    email: 'x',
-    contraseña: 'y',
-    role: 'CLIENTE'
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  expect(spy).toHaveBeenCalledWith(fakeCliente, 'CLIENTE');
-});
+  it('debe estar definido', () => {
+    expect(service).toBeDefined();
+  });
 
+  describe('register', () => {
+    it('debe registrar un cliente correctamente y devolver ClienteDto', async () => {
+      const registerDto: RegisterDto = {
+        email: 'test@cliente.com',
+        contraseña: 'pass123',
+        nombre: 'Juan Pérez',
+        telefono: '3511234567',
+      };
 
-  // --------------------------------------------------------
-  // remove()
-  // --------------------------------------------------------
-  it('remove debe devolver string fijo', () => {
-    const result = service.remove(5);
-    expect(result).toBe('This action removes a #5 cliente');
+      mockClienteRepository.create.mockResolvedValue(mockClienteEntity);
+
+      const result = await service.register(registerDto);
+
+      expect(mockClienteRepository.create).toHaveBeenCalledWith(
+        toClienteEntity(registerDto),
+      );
+      expect(result).toEqual(toClienteDto(mockClienteEntity));
+    });
+
+    it('debe lanzar un Error genérico si el repository falla', async () => {
+      const registerDto: RegisterDto = {
+        email: 'error@cliente.com',
+        contraseña: 'pass',
+        nombre: 'Error',
+        telefono: '000',
+      };
+
+      mockClienteRepository.create.mockRejectedValue(new Error('DB error'));
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Error al crear el cliente: DB error',
+      );
+    });
+  });
+
+  describe('findOne', () => {
+    it('debe devolver ClienteDto si el cliente existe', async () => {
+      mockClienteRepository.findByEmail.mockResolvedValue(mockClienteEntity);
+
+      const result = await service.findOne('test@cliente.com');
+
+      expect(result).toEqual(toClienteDto(mockClienteEntity));
+    });
+
+    it('debe devolver null si el cliente no existe', async () => {
+      mockClienteRepository.findByEmail.mockResolvedValue(null);
+
+      const result = await service.findOne('noexiste@cliente.com');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('update', () => {
+    it('debe actualizar el cliente correctamente', async () => {
+      const existingCliente = { ...mockClienteEntity, id: 'cli-123' };
+      const updateDto: UpdateClienteDto = {
+        nombre: 'Juan Actualizado',
+        telefono: '351999888',
+      };
+
+      mockClienteRepository.findById.mockResolvedValue(existingCliente);
+      mockClienteRepository.findByEmail.mockResolvedValue(null); // no hay conflicto de email
+      mockClienteRepository.update.mockResolvedValue({
+        ...existingCliente,
+        ...updateDto,
+      });
+
+      const result = await service.update('cli-123', updateDto);
+
+      expect(mockClienteRepository.update).toHaveBeenCalledWith(
+        'cli-123',
+        toClienteUpdateData(updateDto),
+      );
+      expect(result).toEqual({
+        ...existingCliente,
+        ...updateDto,
+      });
+    });
+
+    it('debe lanzar BadRequestException si el cliente no existe', async () => {
+      mockClienteRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.update('noexiste', { nombre: 'Nuevo' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('debe lanzar BadRequestException si el nuevo email ya está en uso por otro cliente', async () => {
+      const existingCliente = { ...mockClienteEntity, id: 'cli-123' };
+      const otroCliente = {
+        ...mockClienteEntity,
+        id: 'cli-999',
+        email: 'nuevo@email.com',
+      };
+
+      mockClienteRepository.findById.mockResolvedValue(existingCliente);
+      mockClienteRepository.findByEmail.mockResolvedValue(otroCliente);
+
+      const updateDto: UpdateClienteDto = { email: 'nuevo@email.com' };
+
+      await expect(service.update('cli-123', updateDto)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.update('cli-123', updateDto)).rejects.toThrow(
+        'El email ya está en uso.',
+      );
+    });
+
+    it('debe permitir cambiar al mismo email (sin conflicto)', async () => {
+      const existingCliente = { ...mockClienteEntity, id: 'cli-123' };
+
+      mockClienteRepository.findById.mockResolvedValue(existingCliente);
+      mockClienteRepository.findByEmail.mockResolvedValue(existingCliente); // mismo cliente
+      mockClienteRepository.update.mockResolvedValue(existingCliente);
+
+      const updateDto: UpdateClienteDto = { email: existingCliente.email };
+
+      await service.update('cli-123', updateDto);
+
+      expect(mockClienteRepository.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('findForAuth', () => {
+    it('debe devolver AuthDto con rol CLIENTE si el cliente existe', async () => {
+      mockClienteRepository.findByEmail.mockResolvedValue(mockClienteEntity);
+
+      const result = await service.findForAuth('test@cliente.com');
+
+      expect(result).toEqual(
+        AuthMapper.toAuthDto(mockClienteEntity, Role.CLIENTE),
+      );
+    });
+
+    it('debe devolver null si el cliente no existe', async () => {
+      mockClienteRepository.findByEmail.mockResolvedValue(null);
+
+      const result = await service.findForAuth('noexiste@cliente.com');
+
+      expect(result).toBeNull();
+    });
   });
 });
