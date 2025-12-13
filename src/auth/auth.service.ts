@@ -118,7 +118,7 @@ export class AuthService {
     registerDto.contraseña = await bcryptSafe.hash(registerDto.contraseña, 10);
   }
 
-  private async firmarToken(
+  async firmarToken(
     id: string,
     role: string,
   ): Promise<{ access_token: string }> {

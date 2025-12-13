@@ -5,7 +5,11 @@ import { EmpleadoRepository } from './repositories/empleado.repository';
 
 @Module({
   controllers: [EmpleadoController],
-  providers: [EmpleadoService, EmpleadoRepository],
+  providers: [
+    EmpleadoService,
+    EmpleadoRepository,
+    { provide: 'IEmpleadoRepository', useClass: EmpleadoRepository },
+  ],
   exports: [EmpleadoService],
 })
 export class EmpleadoModule {}

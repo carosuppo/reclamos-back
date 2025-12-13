@@ -1,13 +1,13 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { TipoReclamoRepository } from './repository/tipo-reclamo.repository';
 import { TipoReclamoDto } from './dto/tipo-reclamo.dto';
 import { TipoReclamoMapper } from './mappers/tipo-reclamo.mapper';
+import type { ITipoReclamoRepository } from './repository/tipo-reclamo.repository.interface';
 
 @Injectable()
 export class TipoReclamoService {
   constructor(
     @Inject('ITipoReclamoRepository')
-    private readonly repository: TipoReclamoRepository,
+    private readonly repository: ITipoReclamoRepository,
   ) {}
 
   async findAll(): Promise<TipoReclamoDto[]> {

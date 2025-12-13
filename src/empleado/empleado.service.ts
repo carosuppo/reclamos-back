@@ -1,6 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { RegisterDto } from 'src/auth/dto/register.dto';
-import { EmpleadoRepository } from './repositories/empleado.repository';
 import { toEmpleadoDto } from './mappers/toEmpleadoDto.mapper';
 import { EmpleadoDto } from './dto/empleado.dto';
 import { toUsuarioEntity } from 'src/common/mappers/toUsuarioEntity.mapper';
@@ -9,10 +8,14 @@ import { toEmpleadoUpdateData } from './mappers/toEmpleadoParcial.mapper';
 import { AuthDto } from 'src/common/dtos/auth.dto';
 import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
 import { Roles } from 'src/common/enums/roles.enum';
+import type { IEmpleadoRepository } from './repositories/empleado.repository.interface';
 
 @Injectable()
 export class EmpleadoService {
-  constructor(private readonly empleadoRepository: EmpleadoRepository) {}
+  constructor(
+    @Inject('IEmpleadoRepository')
+    private readonly empleadoRepository: IEmpleadoRepository,
+  ) {}
 
   async register(registerDto: RegisterDto): Promise<EmpleadoDto> {
     try {

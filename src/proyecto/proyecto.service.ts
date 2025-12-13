@@ -40,7 +40,7 @@ export class ProyectoService {
   async findByTipoProyecto(tipoProyectoId: string) {
     const proyectos = await this.repository.findByTipoProyecto(tipoProyectoId);
 
-    if (!proyectos) {
+    if (proyectos.length === 0) {
       throw new NotFoundException('No hay proyectos con este tipo de proyecto');
     }
 

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "675f9d8254a1c946a1a7c001",
+    "tipoReclamoId": "675f9d8254a1c946a1a7c100",
+    "TipoReclamo": {
+      "id": "675f9d8254a1c946a1a7c100",
+      "nombre": "Problema técnico",
+      "descripcion": "Inconvenientes con el funcionamiento del sistema"
+    },
+    "prioridad": "ALTO",
+    "criticidad": "MEDIO",
+    "archivo": null,
+    "descripcion": "El sistema se cae cuando intento generar un reclamo.",
+    "cambioEstado": [
+      {
+        "id": "675f9d8254a1c946a1a7c900",
+        "areaId": "675f9d8254a1c946a1a7c800",
+        "fechaInicio": "2025-01-04T12:00:00.000Z",
+        "fechaFin": null,
+        "descripcion": "Reclamo ingresado",
+        "estado": "PENDIENTE"
+      }
+    ],
+    "createdAt": "2025-01-04T12:00:00.000Z",
+    "updatedAt": "2025-01-04T12:00:00.000Z",
+    "deletedAt": null
+  },
+  {
+    "id": "675f9d8254a1c946a1a7c002",
+    "tipoReclamoId": "675f9d8254a1c946a1a7c101",
+    "TipoReclamo": {
+      "id": "675f9d8254a1c946a1a7c101",
+      "nombre": "Facturación",
+      "descripcion": "Errores en cargos o montos"
+    },
+    "prioridad": "BAJO",
+    "criticidad": "BAJO",
+    "archivo": null,
+    "descripcion": "Me están cobrando dos veces el mismo servicio.",
+    "cambioEstado": [
+      {
+        "id": "675f9d8254a1c946a1a7c901",
+        "areaId": "675f9d8254a1c946a1a7c801",
+        "fechaInicio": "2025-01-03T09:30:00.000Z",
+        "fechaFin": "2025-01-04T10:00:00.000Z",
+        "descripcion": "Revisión realizada",
+        "estado": "RESUELTO"
+      }
+    ],
+    "createdAt": "2025-01-03T09:30:00.000Z",
+    "updatedAt": "2025-01-04T10:00:00.000Z",
+    "deletedAt": null
+  }
+]

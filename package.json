@@ -30,13 +30,13 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.1",
     "@prisma/client": "^6.19.0",
+    "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "dotenv": "^17.2.3",
     "mime": "^4.1.0",
     "mongodb": "^7.0.0",
     "mongoose": "^8.20.0",
-    "bcrypt": "^6.0.0",
-    "dotenv": "^17.2.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
@@ -53,12 +53,12 @@
     "@types/babel__generator": "^7.27.0",
     "@types/babel__template": "^7.4.4",
     "@types/babel__traverse": "^7.28.0",
+    "@types/bcrypt": "^6.0.0",
     "@types/body-parser": "^1.19.6",
     "@types/connect": "^3.4.38",
     "@types/cookiejar": "^2.1.5",
     "@types/eslint-scope": "^8.3.2",
     "@types/estree": "^1.0.8",
-    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/express-serve-static-core": "^5.1.0",
     "@types/http-errors": "^2.0.5",
@@ -70,11 +70,11 @@
     "@types/methods": "^1.1.4",
     "@types/mime": "^4.0.0",
     "@types/node": "^22.10.7",
+    "@types/passport-jwt": "^4.0.1",
     "@types/qs": "^6.14.0",
     "@types/range-parser": "^1.2.7",
     "@types/stack-utils": "^2.0.3",
     "@types/superagent": "^8.1.9",
-    "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "@types/yargs-parser": "^21.0.3",
     "cross-env": "^10.1.0",
@@ -93,22 +93,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
