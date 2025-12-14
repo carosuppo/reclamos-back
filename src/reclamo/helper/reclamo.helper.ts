@@ -1,8 +1,8 @@
 import { Inject } from '@nestjs/common';
-import type { ICambioEstadoRepository } from 'src/cambio-estado/repositories/cambioEstado.repository.interface';
+import type { ICambioEstadoRepository } from 'src/auth/cambio-estado/repositories/cambioEstado.repository.interface';
 import type { IReclamoRepository } from '../repositories/reclamo.repository.interface';
 import { toReclamoDto } from '../mappers/toReclamoDto';
-import { toCambioEstadoDto } from 'src/cambio-estado/mappers/toCambioEstadoDto';
+import { toCambioEstadoDto } from 'src/auth/cambio-estado/mappers/toCambioEstadoDto';
 
 export class ReclamoHelper {
   constructor(

@@ -1,6 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { RegisterDto } from 'src/auth/dtos/register.dto';
-import { ClienteRepository } from './repositories/cliente.repository';
 import { toClienteDto } from './mappers/toClienteDto.mapper';
 import { ClienteDto } from './dtos/cliente.dto';
 import { UpdateClienteDto } from './dtos/update.cliente.dto';
@@ -9,10 +8,14 @@ import { AuthDto } from 'src/common/dtos/auth.dto';
 import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
 import { Role } from 'src/common/enums/role.enum';
 import { toClienteEntity } from './mappers/toClienteEntity.mapper';
+import type { IClienteRepository } from './repositories/cliente.repository.interface';
 
 @Injectable()
 export class ClienteService {
-  constructor(private readonly clienteRepository: ClienteRepository) {}
+  constructor(
+    @Inject('IClienteRepository')
+    private readonly clienteRepository: IClienteRepository,
+  ) {}
 
   async register(registerDto: RegisterDto): Promise<ClienteDto> {
     try {

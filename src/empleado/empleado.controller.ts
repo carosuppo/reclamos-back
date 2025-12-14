@@ -44,7 +44,7 @@ export class EmpleadoController {
     status: 403,
     description: 'No permitido para este rol',
   })
-  actualizarPerfil(
+  updateProfile(
     @Body() dto: UpdateEmpleadoDto,
     @Req() req: AuthenticatedRequest,
   ) {

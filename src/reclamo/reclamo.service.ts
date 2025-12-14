@@ -14,7 +14,7 @@ import { ReclamoHelper } from './helper/reclamo.helper';
 import {
   toCambioEstadoClienteData,
   toCambioEstadoData,
-} from 'src/cambio-estado/mappers/toCambioEstadoEntity';
+} from 'src/auth/cambio-estado/mappers/toCambioEstadoEntity';
 import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
 
 @Injectable()

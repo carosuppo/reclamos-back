@@ -6,7 +6,7 @@ import {
 } from '../interfaces/reclamo-create.interface';
 import { UpdateReclamoDto } from '../dtos/update-reclamo.dto';
 import { ReclamoDto } from '../dtos/reclamo.dto';
-import { CambioEstadoDto } from 'src/cambio-estado/dto/cambioEstado.dto';
+import { CambioEstadoDto } from 'src/auth/cambio-estado/dto/cambioEstado.dto';
 
 export function toReclamoCreateData(
   dto: CreateReclamoDto,

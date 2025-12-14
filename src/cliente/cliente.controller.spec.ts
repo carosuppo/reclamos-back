@@ -63,12 +63,12 @@ describe('ClienteController', () => {
 
   it('debe lanzar el error del service si update falla', async () => {
     const dto: UpdateClienteDto = { nombre: 'x' };
-    const fakeReq = { user: { id: '77' } } as any;
+    const fakeReq = { user: { id: '77', role: 'CLIENTE' } };
 
     service.update.mockRejectedValue(new Error('boom'));
 
-    await expect(controller.updateProfile(dto, fakeReq)).rejects.toThrow(
-      'boom',
-    );
+    await expect(
+      controller.updateProfile(dto, fakeReq as AuthenticatedRequest),
+    ).rejects.toThrow('boom');
   });
 });
