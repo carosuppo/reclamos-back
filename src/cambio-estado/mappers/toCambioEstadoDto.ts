@@ -1,5 +1,5 @@
 import { CambioEstado } from '@prisma/client';
-import { CambioEstadoDto } from '../dto/cambioEstado.dto';
+import { CambioEstadoDto } from '../dto/cambio-estado.dto';
 
 export function toCambioEstadoDto(cambio: CambioEstado): CambioEstadoDto {
   return {
