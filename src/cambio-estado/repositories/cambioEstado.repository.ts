@@ -17,7 +17,10 @@ export class CambioEstadoRepository implements ICambioEstadoRepository {
   async close(reclamoId: string): Promise<void> {
     try {
       await prisma.cambioEstado.updateMany({
-        where: { reclamoId: reclamoId, fechaFin: null },
+        where: {
+          reclamoId: reclamoId,
+          OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+        },
         data: { fechaFin: new Date() },
       });
     } catch (error) {
@@ -44,11 +47,15 @@ export class CambioEstadoRepository implements ICambioEstadoRepository {
   }
 
   async findLastCambioEstado(id: string): Promise<CambioEstado | null> {
-    return await prisma.cambioEstado.findFirst({
+    const cambiosEstado = await prisma.cambioEstado.findMany({
       where: {
         reclamoId: id,
-        fechaFin: null,
       },
+      orderBy: {
+        fechaInicio: 'desc',
+      },
+      take: 1,
     });
+    return cambiosEstado[0];
   }
 }

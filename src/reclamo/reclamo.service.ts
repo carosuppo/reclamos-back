@@ -2,7 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CreateReclamoDto } from './dtos/create-reclamo.dto';
 import type { IReclamoRepository } from './repositories/reclamo.repository.interface';
 import { ReclamoDto } from './dtos/reclamo.dto';
-import { toReclamoCreateData } from './mappers/toReclamoEntity';
+import {
+  toReclamoCreateData,
+  toReclamoUpdateData,
+} from './mappers/toReclamoEntity';
 import { toReclamoDto } from './mappers/toReclamoDto';
 import { ReclamoValidator } from './validators/reclamo.validator';
 import { UpdateEstadoDto } from './dtos/update-estado.dto';
@@ -12,6 +15,7 @@ import {
   toCambioEstadoClienteData,
   toCambioEstadoData,
 } from 'src/cambio-estado/mappers/toCambioEstadoEntity';
+import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
 
 @Injectable()
 export class ReclamoService {
@@ -40,6 +44,15 @@ export class ReclamoService {
     return reclamos.map(toReclamoDto);
   }
 
+  async update(id: string, dto: UpdateReclamoDto, userId: string) {
+    //validar existencia del reclamo
+    const reclamo = await this.helper.findOne(id);
+    const cambioEstado = await this.helper.findLastCambioEstado(id);
+
+    const data = toReclamoUpdateData(id, dto, userId, reclamo, cambioEstado);
+    return await this.repository.update(data);
+  }
+
   async updateEstado(id: string, dto: UpdateEstadoDto, userId: string) {
     //validar existencia del reclamo
     await this.validator.validateReclamo(id);
@@ -54,12 +67,13 @@ export class ReclamoService {
     );
 
     const dataCambioEstado = toCambioEstadoData(
+      id,
       ultimoCambioEstado,
       dto,
       userId,
     );
 
-    return await this.repository.updateEstado(id, dataCambioEstado);
+    return await this.repository.updateEstado(dataCambioEstado);
   }
 
   async reassignArea(id: string, dto: ReasignarAreaDto, userId: string) {

@@ -1,13 +1,18 @@
 import { Estados } from '@prisma/client';
 import { Medidas } from 'src/common/enums/medidas.enum';
 
-export interface ReclamoCreateData {
+export interface ReclamoData {
+  reclamoId?: string;
   tipoReclamoId: string;
-  proyectoId: string;
   prioridad: Medidas;
   criticidad: Medidas;
-  descripcion: string;
   areaId: string;
+  descripcion: string;
   estado: Estados;
   clienteId: string;
+}
+
+export interface ReclamoCreateData extends ReclamoData {
+  tipoReclamoId: string;
+  proyectoId: string;
 }

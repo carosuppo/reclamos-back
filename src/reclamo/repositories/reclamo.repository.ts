@@ -1,6 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import prisma from '../../lib/db';
-import { ReclamoCreateData } from '../interfaces/reclamo-create.interface';
+import {
+  ReclamoCreateData,
+  ReclamoData,
+} from '../interfaces/reclamo-create.interface';
 import { Estados, Reclamo } from '@prisma/client';
 import type { ICambioEstadoRepository } from 'src/cambio-estado/repositories/cambioEstado.repository.interface';
 import type { IReclamoRepository } from './reclamo.repository.interface';
@@ -47,12 +50,6 @@ export class ReclamoRepository implements IReclamoRepository {
 
       return resultado;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Error al crear el reclamo con cambio de estado: ${error.message}`,
-        );
-      }
-
       throw new Error(
         `Error al crear el reclamo con cambio de estado: ${String(error)}`,
       );
@@ -67,46 +64,98 @@ export class ReclamoRepository implements IReclamoRepository {
         },
       },
       include: {
-        tipoReclamo: true, // nombre EXACTO del modelo en Prisma
+        tipoReclamo: true,
         proyecto: true,
         cambioEstado: true,
       },
     });
   }
 
-  async updateEstado(
-    id: string,
-    dataCambioEstado: CambioEstadoCreateData,
-  ): Promise<Reclamo> {
-    const resultado = await prisma.$transaction(async (tx) => {
-      // 1. Crear el reclamo
-      const reclamo = await tx.reclamo.update({
-        where: {
-          id,
-        },
-        data: {
-          estado: dataCambioEstado.estado,
-        },
-      });
-
-      await this.cambioEstadoRepository.close(reclamo.id);
-
-      // 2. Crear el primer cambio de estado asociado al reclamo
-      const cambioEstado = await this.cambioEstadoRepository.create({
-        reclamoId: reclamo.id,
-        areaId: dataCambioEstado.areaId,
-        estado: dataCambioEstado.estado,
-        clienteId: dataCambioEstado.clienteId,
-        descripcion: dataCambioEstado.descripcion,
-      });
-
-      return {
-        ...reclamo,
-        cambioEstadoId: cambioEstado.id,
-      };
+  async findOne(id: string): Promise<Reclamo | null> {
+    return await prisma.reclamo.findUnique({
+      where: {
+        id,
+      },
     });
+  }
 
-    return resultado;
+  async update(data: ReclamoData): Promise<Reclamo> {
+    try {
+      const resultado = await prisma.$transaction(async (tx) => {
+        // 1. Crear el reclamo
+        const reclamo = await tx.reclamo.update({
+          where: {
+            id: data.reclamoId,
+          },
+          data: {
+            tipoReclamoId: data.tipoReclamoId,
+            prioridad: data.prioridad,
+            criticidad: data.criticidad,
+            descripcion: data.descripcion,
+          },
+        });
+
+        await this.cambioEstadoRepository.close(reclamo.id);
+
+        // 2. Crear el primer cambio de estado asociado al reclamo
+        const cambioEstado = await this.cambioEstadoRepository.create({
+          reclamoId: reclamo.id,
+          areaId: data.areaId,
+          estado: data.estado,
+          clienteId: data.clienteId,
+          descripcion: data.descripcion,
+        });
+
+        return {
+          ...reclamo,
+          cambioEstadoId: cambioEstado.id,
+        };
+      });
+
+      return resultado;
+    } catch (error) {
+      throw new Error(
+        `Error al crear el reclamo con cambio de estado: ${String(error)}`,
+      );
+    }
+  }
+
+  async updateEstado(data: CambioEstadoCreateData): Promise<Reclamo> {
+    try {
+      const resultado = await prisma.$transaction(async (tx) => {
+        // 1. Crear el reclamo
+        const reclamo = await tx.reclamo.update({
+          where: {
+            id: data.reclamoId,
+          },
+          data: {
+            estado: data.estado,
+          },
+        });
+
+        await this.cambioEstadoRepository.close(reclamo.id);
+
+        // 2. Crear el primer cambio de estado asociado al reclamo
+        const cambioEstado = await this.cambioEstadoRepository.create({
+          reclamoId: reclamo.id,
+          areaId: data.areaId,
+          estado: data.estado,
+          empleadoId: data.empleadoId,
+          descripcion: data.descripcion,
+        });
+
+        return {
+          ...reclamo,
+          cambioEstadoId: cambioEstado.id,
+        };
+      });
+
+      return resultado;
+    } catch (error) {
+      throw new Error(
+        `Error al crear el reclamo con cambio de estado: ${String(error)}`,
+      );
+    }
   }
 
   async reassignArea(data: CambioEstadoCreateData): Promise<Reclamo> {
@@ -141,12 +190,6 @@ export class ReclamoRepository implements IReclamoRepository {
 
       return resultado;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Error al crear el reclamo con cambio de estado: ${error.message}`,
-        );
-      }
-
       throw new Error(
         `Error al crear el reclamo con cambio de estado: ${String(error)}`,
       );

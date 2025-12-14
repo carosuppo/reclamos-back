@@ -1,10 +1,16 @@
 import { Estados } from '@prisma/client';
 import { CreateReclamoDto } from '../dtos/create-reclamo.dto';
-import { ReclamoCreateData } from '../interfaces/reclamo-create.interface';
+import {
+  ReclamoCreateData,
+  ReclamoData,
+} from '../interfaces/reclamo-create.interface';
+import { UpdateReclamoDto } from '../dtos/update-reclamo.dto';
+import { ReclamoDto } from '../dtos/reclamo.dto';
+import { CambioEstadoDto } from 'src/cambio-estado/dto/cambioEstado.dto';
 
 export function toReclamoCreateData(
   dto: CreateReclamoDto,
-  id: string,
+  clienteId: string,
 ): ReclamoCreateData {
   return {
     tipoReclamoId: dto.tipoReclamoId,
@@ -14,6 +20,25 @@ export function toReclamoCreateData(
     areaId: dto.areaId,
     descripcion: dto.descripcion,
     estado: Estados.PENDIENTE,
-    clienteId: id,
+    clienteId: clienteId,
+  };
+}
+
+export function toReclamoUpdateData(
+  id: string,
+  dto: UpdateReclamoDto,
+  clienteId: string,
+  reclamo: ReclamoDto,
+  cambioEstado: CambioEstadoDto,
+): ReclamoData {
+  return {
+    reclamoId: id,
+    tipoReclamoId: dto.tipoReclamoId ?? reclamo.tipoReclamo,
+    prioridad: dto.prioridad ?? reclamo.prioridad,
+    criticidad: dto.criticidad ?? reclamo.criticidad,
+    areaId: dto.areaId ?? cambioEstado.areaId,
+    descripcion: dto.descripcion,
+    estado: Estados.PENDIENTE,
+    clienteId: clienteId,
   };
 }

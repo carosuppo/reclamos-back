@@ -18,6 +18,7 @@ export function toCambioEstadoCreateData(
 }
 
 export function toCambioEstadoData(
+  id: string,
   cambioEstado: CambioEstado,
   dto: UpdateEstadoDto,
   userId: string,

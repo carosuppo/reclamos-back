@@ -9,4 +9,5 @@ export class ReclamoDto {
   criticidad: Medidas;
   descripcion: string;
   estado: Estados;
+  areaId?: string;
 }

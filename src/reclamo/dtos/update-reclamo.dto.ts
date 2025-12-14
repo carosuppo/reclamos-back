@@ -8,7 +8,11 @@ export class UpdateReclamoDto {
 
   @IsString()
   @IsOptional()
-  descripcion?: string;
+  areaId?: string;
+
+  @IsString()
+  @IsOptional()
+  descripcion: string;
 
   @IsEnum(Medidas)
   @IsOptional()
@@ -17,7 +21,4 @@ export class UpdateReclamoDto {
   @IsEnum(Medidas)
   @IsOptional()
   criticidad?: Medidas;
-
-  @IsString()
-  area: string;
 }

@@ -1,8 +1,9 @@
 import { Estados } from '@prisma/client';
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsString } from 'class-validator';
 
 export class UpdateEstadoDto {
-  descripcion?: string;
+  @IsString()
+  descripcion: string;
   @IsEnum(Estados)
   estado: Estados;
 }

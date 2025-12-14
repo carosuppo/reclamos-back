@@ -1,8 +1,9 @@
 import { ProyectoService } from 'src/proyecto/proyecto.service';
 import { TipoReclamoService } from '../../tipo-reclamo/tipo-reclamo.service';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Estados } from '@prisma/client';
 import { AreaService } from 'src/area/area.service';
+import type { IReclamoRepository } from '../repositories/reclamo.repository.interface';
 
 @Injectable()
 export class ReclamoValidator {
@@ -10,6 +11,8 @@ export class ReclamoValidator {
     private readonly tipoReclamoService: TipoReclamoService,
     private readonly proyectoService: ProyectoService,
     private readonly areaService: AreaService,
+    @Inject('IReclamoRepository')
+    private readonly repository: IReclamoRepository,
   ) {}
 
   async validateTipoReclamo(id: string): Promise<boolean> {
@@ -26,7 +29,7 @@ export class ReclamoValidator {
   }
 
   async validateReclamo(id: string): Promise<boolean> {
-    const reclamo = await this.proyectoService.findOne(id);
+    const reclamo = await this.repository.findOne(id);
     if (!reclamo) throw new Error(`El reclamo con id ${id} no existe`);
     return true;
   }
