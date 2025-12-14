@@ -10,6 +10,7 @@ import { TipoProyectoModule } from './tipo-proyecto/tipo-proyecto.module';
 import { ClienteModule } from './cliente/cliente.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CambioEstadoModule } from './cambio-estado/cambio-estado.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AppService } from './app.service';
     AuthModule,
     EmpleadoModule,
     ClienteModule,
+    CambioEstadoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

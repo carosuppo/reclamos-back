@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmpleadoController } from './empleado.controller';
 import { EmpleadoService } from './empleado.service';
-import { UpdateEmpleadoDto } from './dto/update.empleado.dto';
+import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
 import { AuthenticatedRequest } from 'src/common/types/authenticated-request';
 
 describe('EmpleadoController', () => {

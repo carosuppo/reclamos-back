@@ -4,8 +4,10 @@ import { IProyectoRepository } from './proyecto.repository.interface';
 import { ProyectoInterfaz } from '../interfaces/proyecto.interfaz';
 
 export class ProyectoRepository implements IProyectoRepository {
-  async findAll(): Promise<Proyecto[]> {
-    const proyecto = await prisma.proyecto.findMany({});
+  async findAll(user: string): Promise<Proyecto[]> {
+    const proyecto = await prisma.proyecto.findMany({
+      where: { clienteId: user },
+    });
     return proyecto.filter((proyecto) => !proyecto.deletedAt);
   }
 
@@ -21,10 +23,14 @@ export class ProyectoRepository implements IProyectoRepository {
     return proyecto;
   }
 
-  async findByTipoProyecto(tipoProyectoId: string): Promise<Proyecto[]> {
+  async findByTipoProyecto(
+    tipoProyectoId: string,
+    user: string,
+  ): Promise<Proyecto[]> {
     const proyectos = await prisma.proyecto.findMany({
       where: {
         tipoProyectoId,
+        clienteId: user,
       },
     });
     return proyectos.filter((proyecto) => !proyecto.deletedAt);

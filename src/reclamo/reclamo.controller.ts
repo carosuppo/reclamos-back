@@ -1,42 +1,72 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
+  UseGuards,
+  Req,
+  Put,
   Param,
-  Delete,
+  Get,
 } from '@nestjs/common';
 import { ReclamoService } from './reclamo.service';
-import { CreateReclamoDto } from './dto/create-reclamo.dto';
-import { UpdateReclamoDto } from './dto/update-reclamo.dto';
+import { CreateReclamoDto } from './dtos/create-reclamo.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
+import { UpdateEstadoDto } from './dtos/update-estado.dto';
+import { ReasignarAreaDto } from './dtos/reasignar-area.dto';
+import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reclamo')
 export class ReclamoController {
-  constructor(private readonly reclamoService: ReclamoService) {}
+  constructor(private readonly service: ReclamoService) {}
 
+  @Roles(Role.CLIENTE)
   @Post()
-  create(@Body() createReclamoDto: CreateReclamoDto) {
-    return this.reclamoService.create(createReclamoDto);
+  create(@Body() dto: CreateReclamoDto, @Req() req) {
+    const userId = req.user.id as string;
+    return this.service.create(dto, userId);
   }
 
+  @Roles(Role.CLIENTE)
   @Get()
-  findAll() {
-    return this.reclamoService.findAll();
+  findByCliente(@Req() req) {
+    const userId = req.user.id as string;
+    return this.service.findByCliente(userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reclamoService.findOne(+id);
+  @Roles(Role.EMPLEADO)
+  @Put('/update-estado/:id')
+  updateEstado(
+    @Param('id') id: string,
+    @Body() dto: UpdateEstadoDto,
+    @Req() req,
+  ) {
+    const userId = req.user.id as string;
+    return this.service.updateEstado(id, dto, userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReclamoDto: UpdateReclamoDto) {
-    return this.reclamoService.update(+id, updateReclamoDto);
+  @Roles(Role.EMPLEADO)
+  @Put('/reassign-area/:id')
+  reassignArea(
+    @Param('id') reclamoId: string,
+    @Body() dto: ReasignarAreaDto,
+    @Req() req,
+  ) {
+    const userId = req.user.id as string;
+    return this.service.reassignArea(reclamoId, dto, userId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reclamoService.remove(+id);
+  @Roles(Role.CLIENTE)
+  @Put('/:id')
+  update(
+    @Param('id') reclamoId: string,
+    @Body() dto: UpdateReclamoDto,
+    @Req() req,
+  ) {
+    const userId = req.user.id as string;
+    return this.service.update(reclamoId, dto, userId);
   }
 }

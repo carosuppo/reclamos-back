@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClienteController } from './cliente.controller';
 import { ClienteService } from './cliente.service';
-import { UpdateClienteDto } from './dto/update.cliente.dto';
+import { UpdateClienteDto } from './dtos/update.cliente.dto';
 import { AuthenticatedRequest } from 'src/common/types/authenticated-request';
 
 describe('ClienteController', () => {

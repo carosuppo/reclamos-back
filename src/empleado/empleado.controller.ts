@@ -1,9 +1,17 @@
-import { Controller, Body, UseGuards, Put, Req } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  UseGuards,
+  Put,
+  Req,
+  Patch,
+  Param,
+} from '@nestjs/common';
 import { EmpleadoService } from './empleado.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { UpdateEmpleadoDto } from './dto/update.empleado.dto';
+import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -11,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from 'src/common/types/authenticated-request';
+import { AsignarAreaDto } from './dtos/asignar.area.dto';
 
 @ApiTags('Empleado')
 @ApiBearerAuth()
@@ -35,11 +44,16 @@ export class EmpleadoController {
     status: 403,
     description: 'No permitido para este rol',
   })
-  updateProfile(
+  actualizarPerfil(
     @Body() dto: UpdateEmpleadoDto,
     @Req() req: AuthenticatedRequest,
   ) {
     const userId = req.user.id;
     return this.empleadoService.update(userId, dto);
+  }
+
+  @Patch(':email/area')
+  asignarArea(@Param('email') email: string, @Body() dto: AsignarAreaDto) {
+    return this.empleadoService.asignarArea(email, dto);
   }
 }

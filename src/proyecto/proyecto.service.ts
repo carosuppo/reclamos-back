@@ -1,10 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProyectoDto } from './dto/create-proyecto.dto';
-import { UpdateProyectoDto } from './dto/update-proyecto.dto';
+import { CreateProyectoDto } from './dtos/create-proyecto.dto';
+import { UpdateProyectoDto } from './dtos/update-proyecto.dto';
 import type { IProyectoRepository } from './repositories/proyecto.repository.interface';
-import { aProyectoDto, aProyectoInterfaz } from './mapper/proyecto.mapper';
+import { aProyectoDto, aProyectoInterfaz } from './mappers/proyecto.mapper';
 import { ProyectoInterfaz } from './interfaces/proyecto.interfaz';
-import { ProyectoValidador } from './validator/proyecto.validator';
+import { ProyectoValidador } from './validators/proyecto.validator';
 
 @Injectable()
 export class ProyectoService {
@@ -14,16 +14,16 @@ export class ProyectoService {
     private readonly validator: ProyectoValidador,
   ) {}
 
-  async create(dto: CreateProyectoDto) {
-    await this.validator.validate(dto.tipoProyectoId);
+  async create(dto: CreateProyectoDto, user: string) {
+    await this.validator.validateTipoProyecto(dto.tipoProyectoId);
 
-    const proyectoInterfaz = aProyectoInterfaz(dto) as ProyectoInterfaz;
+    const proyectoInterfaz = aProyectoInterfaz(dto, user) as ProyectoInterfaz;
     const proyecto = await this.repository.create(proyectoInterfaz);
     return aProyectoDto(proyecto);
   }
 
-  async findAll() {
-    const proyectos = await this.repository.findAll();
+  async findAll(user: string) {
+    const proyectos = await this.repository.findAll(user);
     return proyectos.map(aProyectoDto);
   }
 
@@ -37,8 +37,11 @@ export class ProyectoService {
     return aProyectoDto(proyecto);
   }
 
-  async findByTipoProyecto(tipoProyectoId: string) {
-    const proyectos = await this.repository.findByTipoProyecto(tipoProyectoId);
+  async findByTipoProyecto(tipoProyectoId: string, user: string) {
+    const proyectos = await this.repository.findByTipoProyecto(
+      tipoProyectoId,
+      user,
+    );
 
     if (!proyectos) {
       throw new NotFoundException('No hay proyectos con este tipo de proyecto');
@@ -47,12 +50,12 @@ export class ProyectoService {
     return proyectos.map(aProyectoDto);
   }
 
-  async update(id: string, dto: UpdateProyectoDto) {
+  async update(id: string, dto: UpdateProyectoDto, user: string) {
     if (dto.tipoProyectoId) {
-      await this.validator.validate(dto.tipoProyectoId);
+      await this.validator.validateTipoProyecto(dto.tipoProyectoId);
     }
 
-    const proyectoInterfaz = aProyectoInterfaz(dto);
+    const proyectoInterfaz = aProyectoInterfaz(dto, user);
     const proyecto = await this.repository.update(id, proyectoInterfaz);
     return aProyectoDto(proyecto);
   }

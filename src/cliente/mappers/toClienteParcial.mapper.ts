@@ -1,4 +1,4 @@
-import { UpdateClienteDto } from '../dto/update.cliente.dto';
+import { UpdateClienteDto } from '../dtos/update.cliente.dto';
 import { ClienteUpdateData } from '../interfaces/cliente-update.interface';
 
 export function toClienteUpdateData(dto: UpdateClienteDto): ClienteUpdateData {

@@ -1,9 +1,9 @@
 import { Cliente } from '@prisma/client';
-import { UsuarioCreateData } from 'src/common/interfaces/usuario-create.interface';
 import { ClienteUpdateData } from '../interfaces/cliente-update.interface';
+import { ClienteCreateData } from '../interfaces/cliente-create.interface';
 
 export interface IClienteRepository {
-  create(data: UsuarioCreateData): Promise<Cliente>;
+  create(data: ClienteCreateData): Promise<Cliente>;
   findAll(): Promise<Cliente[]>;
   findByEmail(email: string): Promise<Cliente | null>;
   findById(id: string): Promise<Cliente | null>;

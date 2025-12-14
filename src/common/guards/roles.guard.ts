@@ -7,14 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { Request } from 'express';
-import { Roles } from '../enums/roles.enum';
-
-// Usuario que tu estrategia mete dentro del request
-interface AuthUser {
-  id: number;
-  email: string;
-  role: Roles;
-}
+import { AuthUser } from '../types/authenticated-request';
 
 // Extendemos el Request original de Express
 interface AuthenticatedRequest extends Request {

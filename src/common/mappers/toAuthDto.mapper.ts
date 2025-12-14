@@ -1,10 +1,10 @@
 import { AuthDto } from 'src/common/dtos/auth.dto';
-import { Roles } from '../enums/roles.enum';
+import { Role } from '../enums/role.enum';
 
 type AuthEntityLike = { id: string; email: string; contraseña: string };
 
 export class AuthMapper {
-  static toAuthDto<T extends AuthEntityLike>(entity: T, role: Roles): AuthDto {
+  static toAuthDto<T extends AuthEntityLike>(entity: T, role: Role): AuthDto {
     return {
       id: entity.id,
       email: entity.email,

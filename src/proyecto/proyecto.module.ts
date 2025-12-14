@@ -3,7 +3,7 @@ import { ProyectoService } from './proyecto.service';
 import { ProyectoController } from './proyecto.controller';
 import { ProyectoRepository } from './repositories/proyecto.repository';
 import { TipoProyectoModule } from 'src/tipo-proyecto/tipo-proyecto.module';
-import { ProyectoValidador } from './validator/proyecto.validator';
+import { ProyectoValidador } from './validators/proyecto.validator';
 
 @Module({
   imports: [TipoProyectoModule],
@@ -13,6 +13,6 @@ import { ProyectoValidador } from './validator/proyecto.validator';
     ProyectoValidador,
     { provide: 'IProyectoRepository', useClass: ProyectoRepository },
   ],
-  exports: [ProyectoValidador],
+  exports: [ProyectoValidador, ProyectoService],
 })
 export class ProyectoModule {}
