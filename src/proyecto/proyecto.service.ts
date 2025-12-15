@@ -89,7 +89,18 @@ export class ProyectoService {
     return aProyectoDto(proyecto);
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
+    const proyectoExistente = await this.repository.findByIdAndCliente(
+      id,
+      userId,
+    );
+
+    if (!proyectoExistente) {
+      throw new ForbiddenException(
+        'No tenés permiso para modificar este proyecto',
+      );
+    }
+
     return await this.repository.remove(id);
   }
 }
