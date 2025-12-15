@@ -10,11 +10,21 @@ import { AreaService } from '../area/area.service';
 describe('ReclamoController', () => {
   let controller: ReclamoController;
 
+  const mockReclamoService = {
+    create: jest.fn(),
+    findByCliente: jest.fn(),
+    updateEstado: jest.fn(),
+    reassignArea: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ReclamoController],
       providers: [
-        ReclamoService,
+        {
+          provide: ReclamoService,
+          useValue: mockReclamoService,
+        },
         ReclamoValidator,
         ReclamoHelper,
         {
