@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -67,12 +68,23 @@ export class ProyectoService {
     return proyectos.map(aProyectoDto);
   }
 
-  async update(id: string, dto: UpdateProyectoDto, user: string) {
+  async update(id: string, dto: UpdateProyectoDto, userId: string) {
+    const proyectoExistente = await this.repository.findByIdAndCliente(
+      id,
+      userId,
+    );
+
+    if (!proyectoExistente) {
+      throw new ForbiddenException(
+        'No tenés permiso para modificar este proyecto',
+      );
+    }
+
     if (dto.tipoProyectoId) {
       await this.validator.validateTipoProyecto(dto.tipoProyectoId);
     }
 
-    const proyectoInterfaz = aProyectoInterfaz(dto, user);
+    const proyectoInterfaz = aProyectoInterfaz(dto, userId);
     const proyecto = await this.repository.update(id, proyectoInterfaz);
     return aProyectoDto(proyecto);
   }
