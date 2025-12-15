@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CambioEstadoController } from './cambio-estado.controller';
 import { CambioEstadoService } from './cambio-estado.service';
 import { Estados } from '@prisma/client';
-import type { CambioEstadoDto } from './dto/cambio-estado.dto';
+import type { CambioEstadoDto } from './dtos/cambio-estado.dto';
 
 describe('CambioEstadoController', () => {
   let controller: CambioEstadoController;

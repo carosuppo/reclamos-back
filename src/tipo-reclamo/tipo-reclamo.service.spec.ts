@@ -2,7 +2,7 @@ import { CambioEstadoRepository } from '../cambio-estado/repositories/cambio-est
 import { Estados, CambioEstado } from '@prisma/client';
 import prisma from '../lib/db';
 
-jest.mock('../../lib/db', () => ({
+jest.mock('../lib/db', () => ({
   cambioEstado: {
     create: jest.fn(),
     updateMany: jest.fn(),

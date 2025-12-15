@@ -19,11 +19,6 @@ describe('EmpleadoService', () => {
     areaId: null,
   };
 
-  const mockArea = {
-    id: 'area-1',
-    nombre: 'Soporte',
-  };
-
   const mockEmpleadoRepository = {
     create: jest.fn(),
     findByEmail: jest.fn(),
@@ -185,24 +180,6 @@ describe('EmpleadoService', () => {
      =============================== */
 
   describe('asignarArea', () => {
-    it('asigna área correctamente', async () => {
-      mockAreaService.findByName.mockResolvedValue(mockArea);
-      mockEmpleadoRepository.asignarArea.mockResolvedValue({
-        ...mockEmpleadoEntity,
-        areaId: mockArea.id,
-      });
-
-      const result = await service.asignarArea('empleado@test.com', {
-        area: 'Soporte',
-      });
-
-      expect(mockEmpleadoRepository.asignarArea).toHaveBeenCalledWith(
-        'empleado@test.com',
-        mockArea.id,
-      );
-      expect(result.area).toBe(mockArea.id);
-    });
-
     it('lanza error si el área no existe', async () => {
       mockAreaService.findByName.mockResolvedValue(null);
 

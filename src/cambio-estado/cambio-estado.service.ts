@@ -1,8 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { CreateCambioEstadoDto } from './dto/create-cambio-estado.dto';
+import { CreateCambioEstadoDto } from './dtos/create-cambio-estado.dto';
 import { toCambioEstadoCreateData } from './mappers/toCambioEstadoEntity';
 import { toCambioEstadoDto } from './mappers/toCambioEstadoDto';
-import { CambioEstadoDto } from './dto/cambio-estado.dto';
+import { CambioEstadoDto } from './dtos/cambio-estado.dto';
 import { CambioEstadoValidator } from './validators/cambio-estado.validator';
 import type { ICambioEstadoRepository } from './repositories/cambio-estado.repository.interface';
 import { toEstadoEnum } from './mappers/toEstadoEnum';

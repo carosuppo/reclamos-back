@@ -4,7 +4,7 @@ import { CambioEstadoService } from './cambio-estado.service';
 import { CambioEstadoValidator } from './validators/cambio-estado.validator';
 import { Estados, CambioEstado } from '@prisma/client';
 import type { ICambioEstadoRepository } from './repositories/cambio-estado.repository.interface';
-import type { CreateCambioEstadoDto } from './dto/create-cambio-estado.dto';
+import type { CreateCambioEstadoDto } from './dtos/create-cambio-estado.dto';
 
 describe('CambioEstadoService', () => {
   let service: CambioEstadoService;
@@ -173,7 +173,7 @@ describe('CambioEstadoService', () => {
         .spyOn(mockRepository, 'findByEstado')
         .mockResolvedValue([cambioEstadoEntity]);
 
-      const result = await service.findByEstado('pendiente');
+      const result = await service.findByEstado('PENDIENTE');
 
       expect(findByEstadoSpy).toHaveBeenCalledWith(Estados.PENDIENTE);
       expect(result).toHaveLength(1);

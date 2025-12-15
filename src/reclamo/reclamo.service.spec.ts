@@ -1,12 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReclamoService } from './reclamo.service';
+import { ReclamoValidator } from './validators/reclamo.validator';
+import { ReclamoHelper } from './helper/reclamo.helper';
 
 describe('ReclamoService', () => {
   let service: ReclamoService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ReclamoService],
+      providers: [
+        ReclamoService,
+        // Mock del repository (string token)
+        {
+          provide: 'IReclamoRepository',
+          useValue: {},
+        },
+        // Mock del validator
+        {
+          provide: ReclamoValidator,
+          useValue: {},
+        },
+        // Mock del helper
+        {
+          provide: ReclamoHelper,
+          useValue: {},
+        },
+      ],
     }).compile();
 
     service = module.get<ReclamoService>(ReclamoService);
