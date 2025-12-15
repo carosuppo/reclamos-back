@@ -78,14 +78,15 @@ export class ProyectoController {
     @Body() updateProyectoDto: UpdateProyectoDto,
     @Req() req,
   ) {
-    const user = req.user.id as string;
-    return this.service.update(id, updateProyectoDto, user);
+    const userId = req.user.id as string;
+    return this.service.update(id, updateProyectoDto, userId);
   }
 
   @SwaggerDeleteProyecto()
   @Roles(Role.CLIENTE)
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.service.remove(id);
+  delete(@Req() req, @Param('id') id: string) {
+    const userId = req.user.id as string;
+    return this.service.remove(id, userId);
   }
 }
