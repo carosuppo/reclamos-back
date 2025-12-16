@@ -11,7 +11,6 @@ import { AreaModule } from 'src/area/area.module';
 import { EmpleadoModule } from 'src/empleado/empleado.module';
 import { AreaValidator } from './validators/area.validator';
 import { ClienteModule } from 'src/cliente/cliente.module';
-import { AreaValidator } from './validators/area.validator';
 
 @Module({
   imports: [

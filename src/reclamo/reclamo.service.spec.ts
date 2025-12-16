@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReclamoService } from './reclamo.service';
 import { ReclamoValidator } from './validators/reclamo.validator';
 import { AreaValidator } from './validators/area.validator';
-import { ReclamoHelper } from './helper/reclamo.helper';
+import { ReclamoHelper } from './helpers/reclamo.helper';
 import { EmpleadoService } from 'src/empleado/empleado.service';
 import { CreateReclamoDto } from './dtos/create-reclamo.dto';
 import { UpdateEstadoDto } from './dtos/update-estado.dto';
@@ -44,8 +44,8 @@ const expectedReclamoDto = {
   id: 'rec-123',
   tipoReclamo: 'tr-001',
   proyecto: 'proy-001',
-  prioridad: Medidas.ALTA,
-  criticidad: Medidas.MEDIA,
+  prioridad: Medidas.ALTO,
+  criticidad: Medidas.MEDIO,
   descripcion: 'Test reclamo',
   estado: Estados.PENDIENTE,
 };
@@ -113,8 +113,8 @@ describe('ReclamoService', () => {
       const dto: CreateReclamoDto = {
         tipoReclamoId: 'tr-001',
         proyectoId: 'proy-001',
-        prioridad: Medidas.ALTA,
-        criticidad: Medidas.MEDIA,
+        prioridad: Medidas.ALTO,
+        criticidad: Medidas.MEDIO,
         areaId: 'area-001',
         descripcion: 'Test',
       };
@@ -122,13 +122,23 @@ describe('ReclamoService', () => {
 
       mockValidator.validateTipoReclamo.mockResolvedValue(true);
       mockValidator.validateProyecto.mockResolvedValue(true);
-      mockReclamoRepository.create.mockResolvedValue({ ...mockReclamo, cambioEstadoId: 'ce-001' });
+      mockReclamoRepository.create.mockResolvedValue({
+        ...mockReclamo,
+        cambioEstadoId: 'ce-001',
+      });
 
       const result = await service.create(dto, userId);
 
-      expect(mockValidator.validateTipoReclamo).toHaveBeenCalledWith(dto.tipoReclamoId);
-      expect(mockValidator.validateProyecto).toHaveBeenCalledWith(dto.proyectoId);
-      expect(mockReclamoRepository.create).toHaveBeenCalledWith(toReclamoCreateData(dto, userId), userId);
+      expect(mockValidator.validateTipoReclamo).toHaveBeenCalledWith(
+        dto.tipoReclamoId,
+      );
+      expect(mockValidator.validateProyecto).toHaveBeenCalledWith(
+        dto.proyectoId,
+      );
+      expect(mockReclamoRepository.create).toHaveBeenCalledWith(
+        toReclamoCreateData(dto, userId),
+        userId,
+      );
       expect(result).toEqual(expectedReclamoDto);
     });
   });
@@ -167,7 +177,10 @@ describe('ReclamoService', () => {
   describe('updateEstado', () => {
     it('debe actualizar estado correctamente', async () => {
       const id = 'rec-123';
-      const dto: UpdateEstadoDto = { estado: Estados.EN_PROCESO, descripcion: 'En proceso' };
+      const dto: UpdateEstadoDto = {
+        estado: Estados.EN_PROCESO,
+        descripcion: 'En proceso',
+      };
       const userId = 'emp-001';
 
       mockValidator.validateReclamo.mockResolvedValue(true);
@@ -179,7 +192,10 @@ describe('ReclamoService', () => {
 
       const result = await service.updateEstado(id, dto, userId);
 
-      expect(mockAreaValidator.validateArea).toHaveBeenCalledWith(mockCambioEstado.areaId, userId);
+      expect(mockAreaValidator.validateArea).toHaveBeenCalledWith(
+        mockCambioEstado.areaId,
+        userId,
+      );
       expect(mockReclamoRepository.updateEstado).toHaveBeenCalled();
       expect(result).toEqual(expectedReclamoDto);
     });
@@ -188,7 +204,10 @@ describe('ReclamoService', () => {
   describe('reassignArea', () => {
     it('debe reasignar área correctamente', async () => {
       const id = 'rec-123';
-      const dto: ReasignarAreaDto = { areaId: 'area-002', descripcion: 'Reasignado' };
+      const dto: ReasignarAreaDto = {
+        areaId: 'area-002',
+        descripcion: 'Reasignado',
+      };
       const userId = 'cli-001';
 
       mockValidator.validateReclamo.mockResolvedValue(true);
@@ -213,7 +232,10 @@ describe('ReclamoService', () => {
 
       mockEmpleadoService.findArea.mockResolvedValue(areaId);
       mockReclamoRepository.findAll.mockResolvedValue([mockReclamo]);
-      mockHelper.findLastCambioEstado.mockResolvedValue({ ...mockCambioEstado, areaId });
+      mockHelper.findLastCambioEstado.mockResolvedValue({
+        ...mockCambioEstado,
+        areaId,
+      });
 
       const result = await service.findByArea(userId);
 
@@ -226,8 +248,12 @@ describe('ReclamoService', () => {
 
       mockEmpleadoService.findArea.mockResolvedValue(null);
 
-      await expect(service.findByArea(userId)).rejects.toThrow(BadRequestException);
-      await expect(service.findByArea(userId)).rejects.toThrow('El empleado no tiene un area asignada.');
+      await expect(service.findByArea(userId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.findByArea(userId)).rejects.toThrow(
+        'El empleado no tiene un area asignada.',
+      );
     });
   });
 });
