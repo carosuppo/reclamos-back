@@ -1,9 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateAreaDto } from './dtos/create-area.dto';
 import { UpdateAreaDto } from './dtos/update-area.dto';
-import { AreaMapper } from './mappers/area.mapper';
 import type { IAreaRepository } from './repositories/area.repository.interface';
 import { AreaDto } from './dtos/area.dto';
+import { toAreaDto } from './mappers/area.mapper';
 
 @Injectable()
 export class AreaService {
@@ -14,17 +14,17 @@ export class AreaService {
 
   async create(createAreaDto: CreateAreaDto): Promise<AreaDto | null> {
     const area = await this.repository.create(createAreaDto);
-    return AreaMapper.toAreaDto(area);
+    return toAreaDto(area);
   }
 
   async findAll(): Promise<(AreaDto | null)[]> {
     const areas = await this.repository.findAll();
-    return areas.map((area) => AreaMapper.toAreaDto(area));
+    return areas.map((area) => toAreaDto(area));
   }
 
   async findOne(id: string): Promise<AreaDto | null> {
     const area = await this.repository.findById(id);
-    return AreaMapper.toAreaDto(area);
+    return toAreaDto(area);
   }
 
   async update(
@@ -32,7 +32,7 @@ export class AreaService {
     updateAreaDto: UpdateAreaDto,
   ): Promise<AreaDto | null> {
     const area = await this.repository.update(id, updateAreaDto);
-    return AreaMapper.toAreaDto(area);
+    return toAreaDto(area);
   }
 
   async softDelete(id: string) {
@@ -41,6 +41,6 @@ export class AreaService {
 
   async findByName(nombre: string): Promise<AreaDto | null> {
     const area = await this.repository.findByName(nombre);
-    return AreaMapper.toAreaDto(area);
+    return toAreaDto(area);
   }
 }

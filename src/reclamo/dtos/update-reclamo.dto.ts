@@ -1,24 +1,31 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsOptional } from 'class-validator';
 import { Medidas } from '../../common/enums/medidas.enum';
+import {
+  ReclamoAreaField,
+  ReclamoCriticidadField,
+  ReclamoDescripcionField,
+  ReclamoPrioridadField,
+  ReclamoTipoField,
+} from '../swaggers/reclamo.dto.swagger';
 
 export class UpdateReclamoDto {
-  @IsString()
   @IsOptional()
+  @ReclamoTipoField()
   tipoReclamoId?: string;
 
-  @IsString()
   @IsOptional()
+  @ReclamoAreaField()
   areaId?: string;
 
-  @IsString()
   @IsOptional()
+  @ReclamoDescripcionField()
   descripcion: string;
 
-  @IsEnum(Medidas)
   @IsOptional()
+  @ReclamoPrioridadField()
   prioridad?: Medidas;
 
-  @IsEnum(Medidas)
   @IsOptional()
+  @ReclamoCriticidadField()
   criticidad?: Medidas;
 }

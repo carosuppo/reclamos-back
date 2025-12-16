@@ -12,14 +12,13 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from 'src/common/types/authenticated-request';
 import { AsignarAreaDto } from './dtos/asignar.area.dto';
+import {
+  SwaggerAsignarAreaEmpleado,
+  SwaggerUpdateEmpleadoProfile,
+} from './swaggers/empleado.swagger';
 
 @ApiTags('Empleado')
 @ApiBearerAuth()
@@ -29,21 +28,8 @@ import { AsignarAreaDto } from './dtos/asignar.area.dto';
 export class EmpleadoController {
   constructor(private readonly empleadoService: EmpleadoService) {}
 
+  @SwaggerUpdateEmpleadoProfile()
   @Put('update')
-  @ApiOperation({ summary: 'Actualizar perfil del empleado' })
-  @ApiResponse({
-    status: 200,
-    description: 'Perfil actualizado correctamente',
-    type: UpdateEmpleadoDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'No permitido para este rol',
-  })
   updateProfile(
     @Body() dto: UpdateEmpleadoDto,
     @Req() req: AuthenticatedRequest,
@@ -52,6 +38,7 @@ export class EmpleadoController {
     return this.empleadoService.update(userId, dto);
   }
 
+  @SwaggerAsignarAreaEmpleado()
   @Patch(':email/area')
   asignarArea(@Param('email') email: string, @Body() dto: AsignarAreaDto) {
     return this.empleadoService.asignarArea(email, dto);

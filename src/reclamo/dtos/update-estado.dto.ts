@@ -1,9 +1,13 @@
 import { Estados } from '@prisma/client';
-import { IsEnum, IsString } from 'class-validator';
+import {
+  ReclamoDescripcionField,
+  ReclamoEstadoField,
+} from '../swaggers/reclamo.dto.swagger';
 
 export class UpdateEstadoDto {
-  @IsString()
+  @ReclamoDescripcionField()
   descripcion: string;
-  @IsEnum(Estados)
+
+  @ReclamoEstadoField()
   estado: Estados;
 }

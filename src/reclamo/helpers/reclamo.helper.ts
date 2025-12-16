@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, NotFoundException } from '@nestjs/common';
 import type { ICambioEstadoRepository } from '../../cambio-estado/repositories/cambio-estado.repository.interface';
 import type { IReclamoRepository } from '../repositories/reclamo.repository.interface';
 import { toReclamoDto } from '../mappers/toReclamoDto';
@@ -16,14 +16,14 @@ export class ReclamoHelper {
       await this.CambioEstadoRepository.findLastCambioEstado(id);
 
     if (!cambioEstado)
-      throw new Error('No se encontro el ultimo cambio de estado');
+      throw new NotFoundException('No se encontro el ultimo cambio de estado');
 
     return toCambioEstadoDto(cambioEstado);
   }
 
   async findOne(id: string) {
     const reclamo = await this.ReclamoRepository.findOne(id);
-    if (!reclamo) throw new Error('No se encontro el reclamo');
+    if (!reclamo) throw new NotFoundException('No se encontro el reclamo');
     return toReclamoDto(reclamo);
   }
 

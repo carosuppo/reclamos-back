@@ -1,20 +1,25 @@
 import { Estados } from '@prisma/client';
-import { IsOptional, IsString, IsDateString, IsEnum } from 'class-validator';
+import { IsOptional } from 'class-validator';
+import {
+  ReclamoAreaField,
+  ReclamoEstadoField,
+  ReclamoFechaField,
+} from '../swaggers/reclamo.dto.swagger';
 
 export class FindReclamoDto {
   @IsOptional()
-  @IsEnum(Estados)
+  @ReclamoEstadoField()
   estado?: Estados;
 
   @IsOptional()
-  @IsString()
+  @ReclamoAreaField()
   clienteId?: string;
 
   @IsOptional()
-  @IsDateString()
+  @ReclamoFechaField('Fecha desde para filtrar reclamos')
   fechaDesde?: string;
 
   @IsOptional()
-  @IsDateString()
+  @ReclamoFechaField('Fecha hasta para filtrar reclamos')
   fechaHasta?: string;
 }
