@@ -1,8 +1,8 @@
-import { CambioEstadoRepository } from '../cambio-estado/repositories/cambio-estado.repository';
+import { CambioEstadoRepository } from './cambio-estado.repository';
 import { Estados, CambioEstado } from '@prisma/client';
-import prisma from '../lib/db';
+import prisma from '../../lib/db';
 
-jest.mock('../lib/db', () => ({
+jest.mock('../../lib/db', () => ({
   cambioEstado: {
     create: jest.fn(),
     updateMany: jest.fn(),
@@ -38,7 +38,7 @@ describe('CambioEstadoRepository', () => {
      =============================== */
 
   describe('create', () => {
-    it('crea un cambio de estado correctamente', async () => {
+    it('creates a cambio de estado successfully', async () => {
       const createSpy = jest
         .spyOn(prisma.cambioEstado, 'create')
         .mockResolvedValue(cambioEstadoEntity);
@@ -55,7 +55,7 @@ describe('CambioEstadoRepository', () => {
       expect(result).toEqual(cambioEstadoEntity);
     });
 
-    it('lanza error cuando prisma falla', async () => {
+    it('throws error when prisma fails', async () => {
       jest
         .spyOn(prisma.cambioEstado, 'create')
         .mockRejectedValue(new Error('DB error'));
@@ -71,7 +71,7 @@ describe('CambioEstadoRepository', () => {
      =============================== */
 
   describe('close', () => {
-    it('cierra los estados abiertos del reclamo', async () => {
+    it('closes open estados of a reclamo', async () => {
       const updateManySpy = jest
         .spyOn(prisma.cambioEstado, 'updateMany')
         .mockResolvedValue({ count: 1 });
@@ -83,12 +83,11 @@ describe('CambioEstadoRepository', () => {
           reclamoId: 'reclamo-1',
           OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: { fechaFin: expect.any(Date) },
       });
     });
 
-    it('lanza error cuando close falla', async () => {
+    it('throws error when close fails', async () => {
       jest
         .spyOn(prisma.cambioEstado, 'updateMany')
         .mockRejectedValue(new Error('DB error'));
@@ -104,7 +103,7 @@ describe('CambioEstadoRepository', () => {
      =============================== */
 
   describe('findByReclamoId', () => {
-    it('devuelve cambios de estado por reclamoId', async () => {
+    it('returns cambios de estado by reclamo', async () => {
       const findManySpy = jest
         .spyOn(prisma.cambioEstado, 'findMany')
         .mockResolvedValue([cambioEstadoEntity]);
@@ -116,6 +115,16 @@ describe('CambioEstadoRepository', () => {
       });
       expect(result).toHaveLength(1);
     });
+
+    it('throws error when prisma fails', async () => {
+      jest
+        .spyOn(prisma.cambioEstado, 'findMany')
+        .mockRejectedValue(new Error('DB error'));
+
+      await expect(repository.findByReclamoId('reclamo-1')).rejects.toThrow(
+        'Error al obtener los cambios de estado',
+      );
+    });
   });
 
   /* ===============================
@@ -123,7 +132,7 @@ describe('CambioEstadoRepository', () => {
      =============================== */
 
   describe('findByEstado', () => {
-    it('devuelve cambios de estado por estado', async () => {
+    it('returns cambios de estado by estado', async () => {
       const findManySpy = jest
         .spyOn(prisma.cambioEstado, 'findMany')
         .mockResolvedValue([cambioEstadoEntity]);
@@ -135,6 +144,16 @@ describe('CambioEstadoRepository', () => {
       });
       expect(result).toHaveLength(1);
     });
+
+    it('throws error when prisma fails', async () => {
+      jest
+        .spyOn(prisma.cambioEstado, 'findMany')
+        .mockRejectedValue(new Error('DB error'));
+
+      await expect(repository.findByEstado(Estados.PENDIENTE)).rejects.toThrow(
+        'Error al obtener los cambios de estado',
+      );
+    });
   });
 
   /* ===============================
@@ -142,7 +161,7 @@ describe('CambioEstadoRepository', () => {
      =============================== */
 
   describe('findLastCambioEstado', () => {
-    it('devuelve el último cambio de estado', async () => {
+    it('returns the last cambio de estado', async () => {
       const findManySpy = jest
         .spyOn(prisma.cambioEstado, 'findMany')
         .mockResolvedValue([cambioEstadoEntity]);
@@ -157,12 +176,22 @@ describe('CambioEstadoRepository', () => {
       expect(result).toEqual(cambioEstadoEntity);
     });
 
-    it('devuelve undefined si no hay cambios de estado', async () => {
+    it('returns undefined when no cambios exist', async () => {
       jest.spyOn(prisma.cambioEstado, 'findMany').mockResolvedValue([]);
 
       const result = await repository.findLastCambioEstado('reclamo-1');
 
       expect(result).toBeUndefined();
+    });
+
+    it('calls prisma with correct params', async () => {
+      const findManySpy = jest
+        .spyOn(prisma.cambioEstado, 'findMany')
+        .mockResolvedValue([cambioEstadoEntity]);
+
+      await repository.findLastCambioEstado('reclamo-1');
+
+      expect(findManySpy).toHaveBeenCalledTimes(1);
     });
   });
 });

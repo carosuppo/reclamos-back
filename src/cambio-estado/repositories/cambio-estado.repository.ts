@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CambioEstado, Estados } from '@prisma/client';
 import prisma from '../../lib/db';
-import { CambioEstadoCreateData } from '../interfaces/cambioEstado-create.interface';
-import { ICambioEstadoRepository } from './cambioEstado.repository.interface';
+import { CambioEstadoCreateData } from '../interfaces/cambio-estado-create.interface';
+import { ICambioEstadoRepository } from './cambio-estado.repository.interface';
 
 @Injectable()
 export class CambioEstadoRepository implements ICambioEstadoRepository {

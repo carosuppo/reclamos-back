@@ -5,16 +5,16 @@ import {
   ReclamoData,
 } from '../interfaces/reclamo-create.interface';
 import { Estados, Reclamo } from '@prisma/client';
-import type { ICambioEstadoRepository } from 'src/cambio-estado/repositories/cambioEstado.repository.interface';
+import type { ICambioEstadoRepository } from '../../cambio-estado/repositories/cambio-estado.repository.interface';
 import type { IReclamoRepository } from './reclamo.repository.interface';
-import { CambioEstadoCreateData } from 'src/cambio-estado/interfaces/cambioEstado-create.interface';
+import { CambioEstadoCreateData } from '../../cambio-estado/interfaces/cambio-estado-create.interface';
 
 @Injectable()
 export class ReclamoRepository implements IReclamoRepository {
   constructor(
     @Inject('ICambioEstadoRepository')
     private readonly cambioEstadoRepository: ICambioEstadoRepository,
-  ) { }
+  ) {}
   async create(
     reclamoData: ReclamoCreateData,
     userId: string,

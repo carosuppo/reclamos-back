@@ -14,7 +14,7 @@ import { ReclamoHelper } from './helper/reclamo.helper';
 import {
   toCambioEstadoClienteData,
   toCambioEstadoData,
-} from 'src/cambio-estado/mappers/toCambioEstadoEntity';
+} from '../cambio-estado/mappers/toCambioEstadoEntity';
 import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class ReclamoService {
     private readonly repository: IReclamoRepository,
     private readonly validator: ReclamoValidator,
     private readonly helper: ReclamoHelper,
-  ) { }
+  ) {}
 
   async create(dto: CreateReclamoDto, userId: string): Promise<ReclamoDto> {
     // 1. validar tipo de reclamo

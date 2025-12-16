@@ -3,7 +3,7 @@ import {
   ReclamoCreateData,
   ReclamoData,
 } from '../interfaces/reclamo-create.interface';
-import { CambioEstadoCreateData } from 'src/cambio-estado/interfaces/cambioEstado-create.interface';
+import { CambioEstadoCreateData } from '../../cambio-estado/interfaces/cambio-estado-create.interface';
 
 export interface IReclamoRepository {
   create(

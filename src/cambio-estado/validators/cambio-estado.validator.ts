@@ -1,6 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AreaService } from 'src/area/area.service';
 
+@Injectable()
 export class CambioEstadoValidator {
   constructor(private readonly area: AreaService) {}
 

@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReclamoController } from './reclamo.controller';
 import { ReclamoService } from './reclamo.service';
+import { ReclamoValidator } from './validators/reclamo.validator';
+import { ReclamoHelper } from './helper/reclamo.helper';
+import { TipoReclamoService } from '../tipo-reclamo/tipo-reclamo.service';
+import { ProyectoService } from '../proyecto/proyecto.service';
+import { AreaService } from '../area/area.service';
 
 describe('ReclamoController', () => {
   let controller: ReclamoController;
@@ -8,7 +13,31 @@ describe('ReclamoController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ReclamoController],
-      providers: [ReclamoService],
+      providers: [
+        ReclamoService,
+        ReclamoValidator,
+        ReclamoHelper,
+        {
+          provide: 'IReclamoRepository',
+          useValue: {},
+        },
+        {
+          provide: 'ICambioEstadoRepository',
+          useValue: {},
+        },
+        {
+          provide: TipoReclamoService,
+          useValue: {},
+        },
+        {
+          provide: ProyectoService,
+          useValue: {},
+        },
+        {
+          provide: AreaService,
+          useValue: {},
+        },
+      ],
     }).compile();
 
     controller = module.get<ReclamoController>(ReclamoController);
