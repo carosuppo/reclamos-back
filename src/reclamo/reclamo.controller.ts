@@ -7,6 +7,7 @@ import {
   Put,
   Param,
   Get,
+  Query,
 } from '@nestjs/common';
 import { ReclamoService } from './reclamo.service';
 import { CreateReclamoDto } from './dtos/create-reclamo.dto';
@@ -17,6 +18,7 @@ import { Role } from 'src/common/enums/role.enum';
 import { UpdateEstadoDto } from './dtos/update-estado.dto';
 import { ReasignarAreaDto } from './dtos/reasignar-area.dto';
 import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
+import { FindReclamoDto } from './dtos/find-reclamo.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reclamo')
@@ -75,5 +77,23 @@ export class ReclamoController {
   findByArea(@Req() req) {
     const userId = req.user.id as string;
     return this.service.findByArea(userId);
+  }
+
+  @Roles(Role.EMPLEADO)
+  @Get('filtros')
+  findByFiltros(@Query() dto: FindReclamoDto) {
+    return this.service.findByFiltros(dto);
+  }
+
+  @Roles(Role.EMPLEADO)
+  @Get('tiempo-promedio-resolucion')
+  getTiempoPromedioResolucion(@Query() areaId: string) {
+    return this.service.getTiempoPromedioResolucion(areaId);
+  }
+
+  @Roles(Role.EMPLEADO)
+  @Get('cantidad-promedio-resolucion')
+  getCantidadPromedioResolucion(@Query() areaId: string) {
+    return this.service.getCantidadPromedioResolucion(areaId);
   }
 }

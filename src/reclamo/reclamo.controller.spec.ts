@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReclamoController } from './reclamo.controller';
 import { ReclamoService } from './reclamo.service';
 import { ReclamoValidator } from './validators/reclamo.validator';
-import { ReclamoHelper } from './helper/reclamo.helper';
+import { ReclamoHelper } from './helpers/reclamo.helper';
 import { TipoReclamoService } from '../tipo-reclamo/tipo-reclamo.service';
 import { ProyectoService } from '../proyecto/proyecto.service';
 import { AreaService } from '../area/area.service';

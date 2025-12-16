@@ -16,3 +16,10 @@ export interface ReclamoCreateData extends ReclamoData {
   tipoReclamoId: string;
   proyectoId: string;
 }
+
+export interface FiltrosReclamoData {
+  estado?: Estados;
+  clienteId?: string;
+  fechaDesde?: Date;
+  fechaHasta?: Date;
+}

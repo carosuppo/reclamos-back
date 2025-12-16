@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReclamoService } from './reclamo.service';
 import { ReclamoValidator } from './validators/reclamo.validator';
-import { ReclamoHelper } from './helper/reclamo.helper';
+import { ReclamoHelper } from './helpers/reclamo.helper';
 
 describe('ReclamoService', () => {
   let service: ReclamoService;
