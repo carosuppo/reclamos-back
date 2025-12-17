@@ -28,8 +28,8 @@ describe('Auth E2E - POST /auth/login', () => {
     const res: Response = await supertest(server)
       .post('/auth/login')
       .send({
-        email: 'empleado3@gmail.com',
-        contraseña: '123456',
+        email: 'empleado1@example.com',
+        contraseña: 'password123',
       })
       .expect(200) as unknown as Response;
 
@@ -43,7 +43,7 @@ describe('Auth E2E - POST /auth/login', () => {
     await supertest(server)
       .post('/auth/login')
       .send({
-        email: 'empleado3a@gmail.com',
+        email: 'empleado1@example.com',
         contraseña: 'incorrecta',
       })
       .expect(401);
@@ -55,7 +55,7 @@ describe('Auth E2E - POST /auth/login', () => {
       .post('/auth/login')
       .send({
         email: 'noexiste@gmail.com',
-        contraseña: '123456',
+        contraseña: 'password123',
       })
       .expect(401);
   });
