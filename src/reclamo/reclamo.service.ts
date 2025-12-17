@@ -20,6 +20,7 @@ import { EmpleadoService } from 'src/empleado/empleado.service';
 import { AreaValidator } from './validators/area.validator';
 import { FindReclamoDto } from './dtos/find-reclamo.dto';
 import { toFiltrosReclamoData } from './mappers/toFiltrosEntity';
+import { Estados } from '@prisma/client';
 
 @Injectable()
 export class ReclamoService {
@@ -131,7 +132,10 @@ export class ReclamoService {
     for (const reclamo of reclamos) {
       const ultimoCambio = await this.helper.findLastCambioEstado(reclamo.id);
 
-      if (ultimoCambio?.areaId === areaId) {
+      if (
+        ultimoCambio?.areaId === areaId &&
+        ultimoCambio.estado !== Estados.RESUELTO
+      ) {
         reclamosFiltrados.push(toReclamoDto(reclamo));
       }
     }
