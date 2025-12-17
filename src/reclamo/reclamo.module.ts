@@ -6,10 +6,11 @@ import { CambioEstadoModule } from '../cambio-estado/cambio-estado.module';
 import { TipoReclamoModule } from 'src/tipo-reclamo/tipo-reclamo.module';
 import { ProyectoModule } from 'src/proyecto/proyecto.module';
 import { ReclamoValidator } from './validators/reclamo.validator';
-import { ReclamoHelper } from './helper/reclamo.helper';
+import { ReclamoHelper } from './helpers/reclamo.helper';
 import { AreaModule } from 'src/area/area.module';
 import { EmpleadoModule } from 'src/empleado/empleado.module';
 import { AreaValidator } from './validators/area.validator';
+import { ClienteModule } from 'src/cliente/cliente.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AreaValidator } from './validators/area.validator';
     ProyectoModule,
     AreaModule,
     EmpleadoModule,
+    ClienteModule,
   ],
   controllers: [ReclamoController],
   providers: [

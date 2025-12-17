@@ -4,6 +4,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Estados } from '@prisma/client';
 import { AreaService } from 'src/area/area.service';
 import type { IReclamoRepository } from '../repositories/reclamo.repository.interface';
+import { ClienteService } from 'src/cliente/cliente.service';
 
 @Injectable()
 export class ReclamoValidator {
@@ -11,6 +12,7 @@ export class ReclamoValidator {
     private readonly tipoReclamoService: TipoReclamoService,
     private readonly proyectoService: ProyectoService,
     private readonly areaService: AreaService,
+    private readonly clienteService: ClienteService,
     @Inject('IReclamoRepository')
     private readonly repository: IReclamoRepository,
   ) {}
@@ -60,5 +62,11 @@ export class ReclamoValidator {
     if (estado === Estados.RESUELTO) {
       throw new Error('No se puede reasignar el área de un reclamo resuelto');
     }
+  }
+
+  async validateCliente(clienteId: string): Promise<boolean> {
+    const cliente = await this.clienteService.findOne(clienteId);
+    if (!cliente) throw new Error(`El cliente con id ${clienteId} no existe`);
+    return true;
   }
 }

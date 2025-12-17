@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import prisma from '../../lib/db';
 import {
+  FiltrosReclamoData,
   ReclamoCreateData,
   ReclamoData,
 } from '../interfaces/reclamo-create.interface';
-import { Estados, Reclamo } from '@prisma/client';
+import { Estados, Prisma, Reclamo } from '@prisma/client';
 import type { ICambioEstadoRepository } from '../../cambio-estado/repositories/cambio-estado.repository.interface';
 import type { IReclamoRepository } from './reclamo.repository.interface';
 import { CambioEstadoCreateData } from '../../cambio-estado/interfaces/cambio-estado-create.interface';
@@ -198,5 +199,102 @@ export class ReclamoRepository implements IReclamoRepository {
 
   async findAll(): Promise<Reclamo[]> {
     return prisma.reclamo.findMany();
+  }
+
+  async findByFiltros(filtros: FiltrosReclamoData): Promise<number> {
+    const where: Prisma.ReclamoWhereInput = {};
+
+    if (filtros.estado) {
+      where.estado = filtros.estado;
+    }
+
+    if (filtros.clienteId) {
+      where.proyecto = {
+        clienteId: filtros.clienteId,
+      };
+    }
+
+    if (filtros.fechaDesde || filtros.fechaHasta) {
+      where.createdAt = {};
+
+      if (filtros.fechaDesde) {
+        where.createdAt.gte = filtros.fechaDesde;
+      }
+
+      if (filtros.fechaHasta) {
+        const hasta = new Date(filtros.fechaHasta);
+        hasta.setDate(hasta.getDate() + 1);
+        where.createdAt.lt = hasta;
+      }
+    }
+
+    return await prisma.reclamo.count({
+      where: {
+        ...where,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
+  }
+
+  async findDatesResueltos(
+    areaId: string,
+  ): Promise<{ createdAt: Date; updatedAt: Date }[]> {
+    return prisma.reclamo.findMany({
+      where: {
+        estado: 'RESUELTO',
+        cambioEstado: {
+          some: {
+            areaId: areaId,
+            OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+          },
+          none: {
+            OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+            areaId: { not: areaId },
+          },
+        },
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+      select: {
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async countTotalByArea(areaId: string): Promise<number> {
+    return prisma.reclamo.count({
+      where: {
+        cambioEstado: {
+          some: {
+            areaId,
+            OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+          },
+          none: {
+            OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+            areaId: { not: areaId },
+          },
+        },
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
+  }
+
+  async countResueltosByArea(areaId: string): Promise<number> {
+    return prisma.reclamo.count({
+      where: {
+        estado: 'RESUELTO',
+        cambioEstado: {
+          some: {
+            areaId,
+            OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+          },
+          none: {
+            OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+            areaId: { not: areaId },
+          },
+        },
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
   }
 }

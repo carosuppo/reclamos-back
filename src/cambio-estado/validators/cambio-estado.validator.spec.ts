@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { CambioEstadoValidator } from './cambio-estado.validator';
 import { AreaService } from 'src/area/area.service';
 
@@ -52,7 +52,7 @@ describe('CambioEstadoValidator', () => {
       jest.spyOn(mockAreaService, 'findOne').mockResolvedValue(null as never);
 
       await expect(validator.validateArea(areaId)).rejects.toThrow(
-        BadRequestException,
+        NotFoundException,
       );
     });
   });

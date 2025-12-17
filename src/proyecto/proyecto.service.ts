@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -11,6 +10,7 @@ import type { IProyectoRepository } from './repositories/proyecto.repository.int
 import { aProyectoDto, aProyectoInterfaz } from './mappers/proyecto.mapper';
 import { ProyectoInterfaz } from './interfaces/proyecto.interfaz';
 import { ProyectoValidador } from './validators/proyecto.validator';
+import { ProyectoRespuestaDto } from './dtos/respuesta-proyecto.dto';
 
 @Injectable()
 export class ProyectoService {
@@ -33,7 +33,7 @@ export class ProyectoService {
     return proyectos.map(aProyectoDto);
   }
 
-  async findOneEmpleado(id: string) {
+  async findOneEmpleado(id: string): Promise<ProyectoRespuestaDto> {
     const proyecto = await this.repository.findOne(id);
 
     if (!proyecto) {
@@ -43,11 +43,14 @@ export class ProyectoService {
     return aProyectoDto(proyecto);
   }
 
-  async findOneByCliente(id: string, clienteId: string) {
+  async findOneByCliente(
+    id: string,
+    clienteId: string,
+  ): Promise<ProyectoRespuestaDto> {
     const proyecto = await this.repository.findByIdAndCliente(id, clienteId);
 
     if (!proyecto) {
-      throw new BadRequestException(
+      throw new NotFoundException(
         'Proyecto inexistente o no pertenece al cliente',
       );
     }

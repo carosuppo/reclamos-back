@@ -10,39 +10,45 @@ import {
 import { AreaService } from './area.service';
 import { CreateAreaDto } from './dtos/create-area.dto';
 import { UpdateAreaDto } from './dtos/update-area.dto';
-import { ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
-import { AreaDto } from './dtos/area.dto';
+import {
+  SwaggerCreateArea,
+  SwaggerDeleteArea,
+  SwaggerFindAllArea,
+  SwaggerFindOneArea,
+  SwaggerUpdateArea,
+} from './swaggers/area.swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiBearerAuth('access-token')
 @Controller('area')
 export class AreaController {
   constructor(private readonly service: AreaService) {}
 
-  @ApiResponse({ type: AreaDto })
-  @ApiBody({ type: CreateAreaDto })
+  @SwaggerCreateArea()
   @Post()
   create(@Body() createAreaDto: CreateAreaDto) {
     return this.service.create(createAreaDto);
   }
 
-  @ApiResponse({ type: AreaDto, isArray: true })
+  @SwaggerFindAllArea()
   @Get()
   findAll() {
     return this.service.findAll();
   }
 
-  @ApiResponse({ type: AreaDto })
+  @SwaggerFindOneArea()
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @ApiResponse({ type: AreaDto })
+  @SwaggerUpdateArea()
   @Put(':id')
   update(@Param('id') id: string, @Body() updateAreaDto: UpdateAreaDto) {
     return this.service.update(id, updateAreaDto);
   }
 
+  @SwaggerDeleteArea()
   @Delete(':id')
   softDelete(@Param('id') id: string) {
     return this.service.softDelete(id);

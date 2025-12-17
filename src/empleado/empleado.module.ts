@@ -9,7 +9,6 @@ import { AreaModule } from 'src/area/area.module';
   controllers: [EmpleadoController],
   providers: [
     EmpleadoService,
-    EmpleadoRepository,
     { provide: 'IEmpleadoRepository', useClass: EmpleadoRepository },
   ],
   exports: [EmpleadoService],
