@@ -2,9 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import prisma from '../../lib/db';
 import {
   FiltrosReclamoData,
+  FiltrosReclamoData,
   ReclamoCreateData,
   ReclamoData,
 } from '../interfaces/reclamo-create.interface';
+import { Estados, Prisma, Reclamo } from '@prisma/client';
 import { Estados, Prisma, Reclamo } from '@prisma/client';
 import type { ICambioEstadoRepository } from '../../cambio-estado/repositories/cambio-estado.repository.interface';
 import type { IReclamoRepository } from './reclamo.repository.interface';

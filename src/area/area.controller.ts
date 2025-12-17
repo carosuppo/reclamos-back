@@ -25,11 +25,13 @@ export class AreaController {
   constructor(private readonly service: AreaService) {}
 
   @SwaggerCreateArea()
+  @SwaggerCreateArea()
   @Post()
   create(@Body() createAreaDto: CreateAreaDto) {
     return this.service.create(createAreaDto);
   }
 
+  @SwaggerFindAllArea()
   @SwaggerFindAllArea()
   @Get()
   findAll() {
@@ -37,17 +39,20 @@ export class AreaController {
   }
 
   @SwaggerFindOneArea()
+  @SwaggerFindOneArea()
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
   @SwaggerUpdateArea()
+  @SwaggerUpdateArea()
   @Put(':id')
   update(@Param('id') id: string, @Body() updateAreaDto: UpdateAreaDto) {
     return this.service.update(id, updateAreaDto);
   }
 
+  @SwaggerDeleteArea()
   @SwaggerDeleteArea()
   @Delete(':id')
   softDelete(@Param('id') id: string) {

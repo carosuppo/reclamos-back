@@ -8,6 +8,7 @@ import {
   Param,
   Get,
   Query,
+  Query,
 } from '@nestjs/common';
 import { ReclamoService } from './reclamo.service';
 import { CreateReclamoDto } from './dtos/create-reclamo.dto';
@@ -32,12 +33,12 @@ import {
 } from './swaggers/reclamo.swagger';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reclamo')
 export class ReclamoController {
   constructor(private readonly service: ReclamoService) {}
 
+  @SwaggerCreateReclamo()
   @SwaggerCreateReclamo()
   @Roles(Role.CLIENTE)
   @Post()
@@ -47,6 +48,7 @@ export class ReclamoController {
   }
 
   @SwaggerFindReclamosByCliente()
+  @SwaggerFindReclamosByCliente()
   @Roles(Role.CLIENTE)
   @Get()
   findByCliente(@Req() req) {
@@ -54,6 +56,7 @@ export class ReclamoController {
     return this.service.findByCliente(userId);
   }
 
+  @SwaggerUpdateEstadoReclamo()
   @SwaggerUpdateEstadoReclamo()
   @Roles(Role.EMPLEADO)
   @Put('/update-estado/:id')
@@ -67,6 +70,7 @@ export class ReclamoController {
   }
 
   @SwaggerReassignAreaReclamo()
+  @SwaggerReassignAreaReclamo()
   @Roles(Role.EMPLEADO)
   @Put('/reassign-area/:id')
   reassignArea(
@@ -78,6 +82,7 @@ export class ReclamoController {
     return this.service.reassignArea(reclamoId, dto, userId);
   }
 
+  @SwaggerUpdateReclamo()
   @SwaggerUpdateReclamo()
   @Roles(Role.CLIENTE)
   @Put('/:id')
@@ -91,11 +96,33 @@ export class ReclamoController {
   }
 
   @SwaggerFindReclamosByArea()
+  @SwaggerFindReclamosByArea()
   @Roles(Role.EMPLEADO)
-  @Get('empleado')
+  @Get('area')
   findByArea(@Req() req) {
     const userId = req.user.id as string;
     return this.service.findByArea(userId);
+  }
+
+  @SwaggerFindReclamosByFiltros()
+  @Roles(Role.EMPLEADO)
+  @Get('filtros')
+  findByFiltros(@Query() dto: FindReclamoDto) {
+    return this.service.findByFiltros(dto);
+  }
+
+  @SwaggerTiempoPromedioResolucion()
+  @Roles(Role.EMPLEADO)
+  @Get('tiempo-promedio-resolucion')
+  getTiempoPromedioResolucion(@Query('areaId') areaId: string) {
+    return this.service.getTiempoPromedioResolucion(areaId);
+  }
+
+  @SwaggerCantidadPromedioResolucion()
+  @Roles(Role.EMPLEADO)
+  @Get('cantidad-promedio-resolucion')
+  getCantidadPromedioResolucion(@Query('areaId') areaId: string) {
+    return this.service.getCantidadPromedioResolucion(areaId);
   }
 
   @SwaggerFindReclamosByFiltros()

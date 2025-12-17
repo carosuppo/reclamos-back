@@ -91,7 +91,7 @@ export function ReclamoEstadoField() {
 export function ReclamoPrioridadField() {
   return applyDecorators(
     ApiProperty({
-      example: Medidas.ALTO,
+      example: Medidas.ALTA,
       description: 'Prioridad del reclamo',
       enum: Medidas,
     }),
@@ -105,7 +105,7 @@ export function ReclamoPrioridadField() {
 export function ReclamoCriticidadField() {
   return applyDecorators(
     ApiProperty({
-      example: Medidas.ALTO,
+      example: Medidas.ALTA,
       description: 'Criticidad del reclamo',
       enum: Medidas,
     }),

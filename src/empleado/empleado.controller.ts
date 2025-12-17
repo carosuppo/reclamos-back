@@ -6,6 +6,7 @@ import {
   Req,
   Patch,
   Param,
+  Get,
 } from '@nestjs/common';
 import { EmpleadoService } from './empleado.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -42,5 +43,10 @@ export class EmpleadoController {
   @Patch(':email/area')
   asignarArea(@Param('email') email: string, @Body() dto: AsignarAreaDto) {
     return this.empleadoService.asignarArea(email, dto);
+  }
+
+  @Get('me/:mail')
+  me(@Param('mail') mail: string) {
+    return this.empleadoService.findOne(mail);
   }
 }

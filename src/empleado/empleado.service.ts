@@ -71,7 +71,7 @@ export class EmpleadoService {
   }
 
   async asignarArea(email: string, dto: AsignarAreaDto): Promise<EmpleadoDto> {
-    const areaDto = await this.areaService.findByName(dto.area);
+    const areaDto = await this.areaService.findOne(dto.area);
     if (!areaDto) {
       throw new BadRequestException('El area no existe.');
     }

@@ -6,11 +6,11 @@ import {
 } from './swaggers/tipo-reclamo.swagger';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiBearerAuth('access-token')
 @Controller('tipo-reclamo')
 export class TipoReclamoController {
   constructor(private readonly tipoReclamoService: TipoReclamoService) {}
 
+  @SwaggerFindAllTipoReclamo()
   @SwaggerFindAllTipoReclamo()
   @Get()
   findAll() {
