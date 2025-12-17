@@ -7,6 +7,7 @@ import {
   Put,
   Param,
   Get,
+  Query,
 } from '@nestjs/common';
 import { ReclamoService } from './reclamo.service';
 import { CreateReclamoDto } from './dtos/create-reclamo.dto';
@@ -17,14 +18,25 @@ import { Role } from 'src/common/enums/role.enum';
 import { UpdateEstadoDto } from './dtos/update-estado.dto';
 import { ReasignarAreaDto } from './dtos/reasignar-area.dto';
 import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { FindReclamoDto } from './dtos/find-reclamo.dto';
+import {
+  SwaggerCantidadPromedioResolucion,
+  SwaggerCreateReclamo,
+  SwaggerFindReclamosByArea,
+  SwaggerFindReclamosByCliente,
+  SwaggerFindReclamosByFiltros,
+  SwaggerReassignAreaReclamo,
+  SwaggerTiempoPromedioResolucion,
+  SwaggerUpdateEstadoReclamo,
+  SwaggerUpdateReclamo,
+} from './swaggers/reclamo.swagger';
 
-@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reclamo')
 export class ReclamoController {
   constructor(private readonly service: ReclamoService) {}
 
+  @SwaggerCreateReclamo()
   @Roles(Role.CLIENTE)
   @Post()
   create(@Body() dto: CreateReclamoDto, @Req() req) {
@@ -32,6 +44,7 @@ export class ReclamoController {
     return this.service.create(dto, userId);
   }
 
+  @SwaggerFindReclamosByCliente()
   @Roles(Role.CLIENTE)
   @Get()
   findByCliente(@Req() req) {
@@ -39,6 +52,7 @@ export class ReclamoController {
     return this.service.findByCliente(userId);
   }
 
+  @SwaggerUpdateEstadoReclamo()
   @Roles(Role.EMPLEADO)
   @Put('/update-estado/:id')
   updateEstado(
@@ -50,6 +64,7 @@ export class ReclamoController {
     return this.service.updateEstado(id, dto, userId);
   }
 
+  @SwaggerReassignAreaReclamo()
   @Roles(Role.EMPLEADO)
   @Put('/reassign-area/:id')
   reassignArea(
@@ -61,6 +76,7 @@ export class ReclamoController {
     return this.service.reassignArea(reclamoId, dto, userId);
   }
 
+  @SwaggerUpdateReclamo()
   @Roles(Role.CLIENTE)
   @Put('/:id')
   update(
@@ -72,10 +88,32 @@ export class ReclamoController {
     return this.service.update(reclamoId, dto, userId);
   }
 
+  @SwaggerFindReclamosByArea()
   @Roles(Role.EMPLEADO)
-  @Get('empleado')
+  @Get('area')
   findByArea(@Req() req) {
     const userId = req.user.id as string;
     return this.service.findByArea(userId);
+  }
+
+  @SwaggerFindReclamosByFiltros()
+  @Roles(Role.EMPLEADO)
+  @Get('filtros')
+  findByFiltros(@Query() dto: FindReclamoDto) {
+    return this.service.findByFiltros(dto);
+  }
+
+  @SwaggerTiempoPromedioResolucion()
+  @Roles(Role.EMPLEADO)
+  @Get('tiempo-promedio-resolucion')
+  getTiempoPromedioResolucion(@Query('areaId') areaId: string) {
+    return this.service.getTiempoPromedioResolucion(areaId);
+  }
+
+  @SwaggerCantidadPromedioResolucion()
+  @Roles(Role.EMPLEADO)
+  @Get('cantidad-promedio-resolucion')
+  getCantidadPromedioResolucion(@Query('areaId') areaId: string) {
+    return this.service.getCantidadPromedioResolucion(areaId);
   }
 }

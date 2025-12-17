@@ -1,5 +1,6 @@
 import { Reclamo } from '@prisma/client';
 import {
+  FiltrosReclamoData,
   ReclamoCreateData,
   ReclamoData,
 } from '../interfaces/reclamo-create.interface';
@@ -16,4 +17,10 @@ export interface IReclamoRepository {
   updateEstado(data: CambioEstadoCreateData): Promise<Reclamo>;
   reassignArea(data: CambioEstadoCreateData): Promise<Reclamo>;
   findAll(): Promise<Reclamo[]>;
+  findByFiltros(filtros: FiltrosReclamoData): Promise<number>;
+  findDatesResueltos(
+    areaId: string,
+  ): Promise<{ createdAt: Date; updatedAt: Date }[]>;
+  countTotalByArea(areaId: string): Promise<number>;
+  countResueltosByArea(areaId: string): Promise<number>;
 }

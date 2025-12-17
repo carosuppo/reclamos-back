@@ -30,10 +30,10 @@ export class ClienteService {
     }
   }
 
-  async findOne(email: string): Promise<ClienteDto | null> {
+  async findOne(email: string): Promise<ClienteDto> {
     const cliente = await this.clienteRepository.findByEmail(email);
     if (!cliente) {
-      return null;
+      throw new BadRequestException('El usuario no existe.');
     }
     return toClienteDto(cliente);
   }

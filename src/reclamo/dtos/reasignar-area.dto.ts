@@ -1,8 +1,12 @@
-import { IsString } from 'class-validator';
+import {
+  ReclamoDescripcionField,
+  ReclamoReasignarAreaField,
+} from '../swaggers/reclamo.dto.swagger';
 
 export class ReasignarAreaDto {
-  @IsString()
+  @ReclamoDescripcionField()
   descripcion: string;
-  @IsString()
+
+  @ReclamoReasignarAreaField()
   areaId: string;
 }

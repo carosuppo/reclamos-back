@@ -25,7 +25,7 @@ export class AreaRepository implements IAreaRepository {
     });
 
     if (!area || area.deletedAt) {
-      throw new Error(`El área con id ${id} no existe`);
+      throw new NotFoundException(`El área con id ${id} no existe`);
     }
 
     return prisma.area.update({
@@ -42,7 +42,7 @@ export class AreaRepository implements IAreaRepository {
   }
 
   async findById(id: string): Promise<Area> {
-    const area = await prisma.area.findFirst({
+    const area = await prisma.area.findUnique({
       where: { id },
     });
 
@@ -53,12 +53,12 @@ export class AreaRepository implements IAreaRepository {
   }
 
   async softDelete(id: string): Promise<boolean> {
-    const area = await prisma.area.findFirst({
+    const area = await prisma.area.findUnique({
       where: { id },
     });
 
     if (!area || area.deletedAt) {
-      throw new Error(`El área con id ${id} no existe`);
+      throw new NotFoundException(`El área con id ${id} no existe`);
     }
 
     await prisma.area.update({

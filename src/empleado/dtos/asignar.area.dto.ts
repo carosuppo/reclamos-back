@@ -1,11 +1,6 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { EmpleadoAsignarAreaField } from '../swaggers/empleado.dto.swagger';
 
 export class AsignarAreaDto {
-  @ApiPropertyOptional({
-    example: 'Ventas',
-    description: 'Área de trabajo del empleado.',
-  })
-  @IsNotEmpty()
+  @EmpleadoAsignarAreaField()
   area!: string;
 }

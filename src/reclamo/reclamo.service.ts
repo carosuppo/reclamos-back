@@ -10,7 +10,7 @@ import { toReclamoDto } from './mappers/toReclamoDto';
 import { ReclamoValidator } from './validators/reclamo.validator';
 import { UpdateEstadoDto } from './dtos/update-estado.dto';
 import { ReasignarAreaDto } from './dtos/reasignar-area.dto';
-import { ReclamoHelper } from './helper/reclamo.helper';
+import { ReclamoHelper } from './helpers/reclamo.helper';
 import {
   toCambioEstadoClienteData,
   toCambioEstadoData,
@@ -18,6 +18,8 @@ import {
 import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
 import { EmpleadoService } from 'src/empleado/empleado.service';
 import { AreaValidator } from './validators/area.validator';
+import { FindReclamoDto } from './dtos/find-reclamo.dto';
+import { toFiltrosReclamoData } from './mappers/toFiltrosEntity';
 
 @Injectable()
 export class ReclamoService {
@@ -135,5 +137,25 @@ export class ReclamoService {
     }
 
     return reclamosFiltrados;
+  }
+
+  async findByFiltros(dto: FindReclamoDto): Promise<number> {
+    const dataFindReclamo = toFiltrosReclamoData(dto);
+    return await this.repository.findByFiltros(dataFindReclamo);
+  }
+
+  async getTiempoPromedioResolucion(areaId: string): Promise<number> {
+    await this.validator.validateArea(areaId);
+    const rangos = await this.repository.findDatesResueltos(areaId);
+    const tiempoPromedio = this.helper.calcularTiempoResolucion(rangos);
+    return tiempoPromedio;
+  }
+
+  async getCantidadPromedioResolucion(areaId: string): Promise<number> {
+    await this.validator.validateArea(areaId);
+    const total = await this.repository.countTotalByArea(areaId);
+    const resueltos = await this.repository.countResueltosByArea(areaId);
+
+    return this.helper.calcularCantidadPromedio(resueltos, total);
   }
 }

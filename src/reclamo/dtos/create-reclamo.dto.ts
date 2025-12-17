@@ -1,22 +1,29 @@
-import { IsString, IsEnum } from 'class-validator';
 import { Medidas } from 'src/common/enums/medidas.enum';
+import {
+  ReclamoAreaField,
+  ReclamoCriticidadField,
+  ReclamoDescripcionField,
+  ReclamoPrioridadField,
+  ReclamoProyectoField,
+  ReclamoTipoField,
+} from '../swaggers/reclamo.dto.swagger';
 
 export class CreateReclamoDto {
-  @IsString()
+  @ReclamoTipoField()
   tipoReclamoId: string;
 
-  @IsString()
+  @ReclamoDescripcionField()
   descripcion: string;
 
-  @IsEnum(Medidas)
+  @ReclamoPrioridadField()
   prioridad: Medidas;
 
-  @IsEnum(Medidas)
+  @ReclamoCriticidadField()
   criticidad: Medidas;
 
-  @IsString()
+  @ReclamoAreaField()
   areaId: string;
 
-  @IsString()
+  @ReclamoProyectoField()
   proyectoId: string;
 }
