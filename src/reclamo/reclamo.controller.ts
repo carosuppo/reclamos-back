@@ -8,7 +8,6 @@ import {
   Param,
   Get,
   Query,
-  Query,
 } from '@nestjs/common';
 import { ReclamoService } from './reclamo.service';
 import { CreateReclamoDto } from './dtos/create-reclamo.dto';
@@ -33,6 +32,7 @@ import {
 } from './swaggers/reclamo.swagger';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reclamo')
 export class ReclamoController {
@@ -102,27 +102,6 @@ export class ReclamoController {
   findByArea(@Req() req) {
     const userId = req.user.id as string;
     return this.service.findByArea(userId);
-  }
-
-  @SwaggerFindReclamosByFiltros()
-  @Roles(Role.EMPLEADO)
-  @Get('filtros')
-  findByFiltros(@Query() dto: FindReclamoDto) {
-    return this.service.findByFiltros(dto);
-  }
-
-  @SwaggerTiempoPromedioResolucion()
-  @Roles(Role.EMPLEADO)
-  @Get('tiempo-promedio-resolucion')
-  getTiempoPromedioResolucion(@Query('areaId') areaId: string) {
-    return this.service.getTiempoPromedioResolucion(areaId);
-  }
-
-  @SwaggerCantidadPromedioResolucion()
-  @Roles(Role.EMPLEADO)
-  @Get('cantidad-promedio-resolucion')
-  getCantidadPromedioResolucion(@Query('areaId') areaId: string) {
-    return this.service.getCantidadPromedioResolucion(areaId);
   }
 
   @SwaggerFindReclamosByFiltros()

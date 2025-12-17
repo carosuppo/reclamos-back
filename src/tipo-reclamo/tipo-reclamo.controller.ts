@@ -6,6 +6,7 @@ import {
 } from './swaggers/tipo-reclamo.swagger';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('tipo-reclamo')
 export class TipoReclamoController {
   constructor(private readonly tipoReclamoService: TipoReclamoService) {}

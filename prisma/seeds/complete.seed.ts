@@ -306,8 +306,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
       proyectoId: proyectosCreados[0]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'Necesito modificar el formulario de reclamos para incluir un campo adicional de categoría.',
     },
@@ -315,8 +315,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
       proyectoId: proyectosCreados[0]?.id,
       estado: Estados.EN_PROCESO,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'Solicito agregar funcionalidad de notificaciones por email cuando se actualiza un reclamo.',
     },
@@ -324,8 +324,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
       proyectoId: proyectosCreados[1]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'El sistema de migración falla al transferir archivos mayores a 1GB.',
     },
@@ -333,16 +333,16 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
       proyectoId: proyectosCreados[2]?.id,
       estado: Estados.RESUELTO,
-      prioridad: Medidas.BAJO,
-      criticidad: Medidas.MEDIO,
+      prioridad: Medidas.BAJA,
+      criticidad: Medidas.MEDIA,
       descripcion: 'Cambiar el color del botón de pago en la aplicación móvil.',
     },
     {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
       proyectoId: proyectosCreados[2]?.id,
       estado: Estados.EN_PROCESO,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'La aplicación se cierra inesperadamente al procesar pagos con tarjeta de crédito.',
     },
@@ -350,8 +350,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
       proyectoId: proyectosCreados[3]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.MEDIO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.MEDIA,
       descripcion:
         'Agregar reporte de vulnerabilidades encontradas en formato PDF.',
     },
@@ -359,8 +359,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[3]?.id, // Otros
       proyectoId: proyectosCreados[4]?.id,
       estado: Estados.RESUELTO,
-      prioridad: Medidas.BAJO,
-      criticidad: Medidas.BAJO,
+      prioridad: Medidas.BAJA,
+      criticidad: Medidas.BAJA,
       descripcion:
         'Solicito información sobre los horarios de atención del soporte técnico.',
     },
@@ -368,8 +368,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
       proyectoId: proyectosCreados[5]?.id,
       estado: Estados.EN_PROCESO,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'Modificar el formato de las gráficas en el dashboard para mejorar la visualización.',
     },
@@ -377,8 +377,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
       proyectoId: proyectosCreados[6]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'El algoritmo de IA no está aprendiendo correctamente de los datos de entrenamiento.',
     },
@@ -386,8 +386,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
       proyectoId: proyectosCreados[7]?.id,
       estado: Estados.RESUELTO,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.MEDIO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.MEDIA,
       descripcion:
         'Agregar monitoreo en tiempo real del estado de los servidores.',
     },
