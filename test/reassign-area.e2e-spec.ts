@@ -30,6 +30,7 @@ describe('Reclamo – Reassign Area (E2E)', () => {
     server = app.getHttpServer() as Server;
 
     // Limpiar DB
+    /*
     await prisma.cambioEstado.deleteMany();
     await prisma.reclamo.deleteMany();
     await prisma.empleado.deleteMany();
@@ -37,6 +38,7 @@ describe('Reclamo – Reassign Area (E2E)', () => {
     await prisma.cliente.deleteMany();
     await prisma.proyecto.deleteMany();
     await prisma.tipoReclamo.deleteMany();
+    */
 
     // Áreas
     const areaOrigen = await prisma.area.create({
@@ -98,8 +100,8 @@ describe('Reclamo – Reassign Area (E2E)', () => {
         tipoReclamoId: tipoReclamo.id,
         proyectoId: proyecto.id,
         estado: Estados.PENDIENTE,
-        prioridad: Medidas.MEDIO,
-        criticidad: Medidas.MEDIO,
+        prioridad: Medidas.MEDIA,
+        criticidad: Medidas.MEDIA,
         descripcion: 'Reclamo test',
       },
     });
