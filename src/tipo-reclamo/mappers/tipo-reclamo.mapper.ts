@@ -1,11 +1,10 @@
 import { TipoReclamo } from '@prisma/client';
-import { TipoReclamoDto } from '../dtos/tipo-reclamo.dto';
+import { TipoReclamoDTO } from '../dtos/tipo-reclamo.dto';
 
-export function toTipoReclamoDto(tipoReclamo: TipoReclamo): TipoReclamoDto {
-  const dto: TipoReclamoDto = {
+export function toTipoReclamoDTO(tipoReclamo: TipoReclamo): TipoReclamoDTO {
+  return {
     id: tipoReclamo.id,
     nombre: tipoReclamo.nombre,
     descripcion: tipoReclamo.descripcion ?? undefined,
   };
-  return dto;
 }

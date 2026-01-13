@@ -1,20 +1,20 @@
 import {
-  ClienteEmailField,
-  ClienteIdField,
-  ClienteNombreField,
-  ClienteTelefonoField,
-} from '../swaggers/cliente.dto.swagger';
+  IsValidEmail,
+  IsValidId,
+  IsValidName,
+  IsValidTelephone,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class ClienteDto {
-  @ClienteIdField()
+export class ClienteDTO {
+  @IsValidId('Cliente') // Nombre de la tabla
   id: string;
 
-  @ClienteEmailField()
+  @IsValidEmail()
   email: string;
 
-  @ClienteTelefonoField()
+  @IsValidTelephone()
   telefono: string;
 
-  @ClienteNombreField()
+  @IsValidName(50, 'Thomas Moreno', 'Nombre del cliente') // Máx carácteres, Ejemplo, Descripción
   nombre: string;
 }

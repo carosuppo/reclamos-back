@@ -1,20 +1,15 @@
-import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
+import { isValidObjectId } from 'mongoose';
 
 @Injectable()
-export class ValidateObjectIdPipe implements PipeTransform {
-  transform(id: string): string {
-    if (typeof id !== 'string') {
-      throw new BadRequestException('El ID debe ser un string.');
-    }
-
-    const objectIdRegex = /^[a-fA-F0-9]{24}$/;
-
-    if (!objectIdRegex.test(id)) {
+export class ObjectIdPipe implements PipeTransform<string, string> {
+  transform(value: string): string {
+    if (!isValidObjectId(value)) {
       throw new BadRequestException(
-        `El valor '${id}' no es un ObjectId válido.`,
+        `El id '${value}' no es un ObjectId válido`,
       );
     }
 
-    return id;
+    return value;
   }
 }

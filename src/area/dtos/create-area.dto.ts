@@ -1,12 +1,24 @@
+import { PartialType } from '@nestjs/swagger';
 import {
-  AreaDescripcionField,
-  AreaNombreField,
-} from '../swaggers/area.dto.swagger';
+  IsValidDescription,
+  IsValidName,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class CreateAreaDto {
-  @AreaNombreField()
+export class CreateAreaDTO {
+  @IsValidName(
+    50, // Max carácteres
+    'Ventas', // Ejemplo
+    'Nombre del área', // Descripción
+  )
   nombre!: string;
 
-  @AreaDescripcionField()
+  @IsValidDescription(
+    100, // Max carácteres
+    false, // Requerido
+    'Área encargada de las ventas', // Ejemplo
+    'Descripción del área', // Descripción
+  )
   descripcion?: string;
 }
+
+export class UpdateAreaDTO extends PartialType(CreateAreaDTO) {}

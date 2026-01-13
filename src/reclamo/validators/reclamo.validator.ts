@@ -1,10 +1,10 @@
-import { ProyectoService } from 'src/proyecto/proyecto.service';
-import { TipoReclamoService } from '../../tipo-reclamo/tipo-reclamo.service';
 import { Inject, Injectable } from '@nestjs/common';
 import { Estados } from '@prisma/client';
-import { AreaService } from 'src/area/area.service';
+import { AreaService } from '../../area/area.service';
+import { ClienteService } from '../../cliente/cliente.service';
+import { ProyectoService } from '../../proyecto/proyecto.service';
+import { TipoReclamoService } from '../../tipo-reclamo/tipo-reclamo.service';
 import type { IReclamoRepository } from '../repositories/reclamo.repository.interface';
-import { ClienteService } from 'src/cliente/cliente.service';
 
 @Injectable()
 export class ReclamoValidator {
@@ -17,56 +17,59 @@ export class ReclamoValidator {
     private readonly repository: IReclamoRepository,
   ) {}
 
-  async validateTipoReclamo(id: string): Promise<boolean> {
-    const tipoReclamo = await this.tipoReclamoService.findOne(id);
+  async validateTipoReclamo(id: string): Promise<void> {
+    const tipoReclamo = await this.tipoReclamoService.findById(id);
     if (!tipoReclamo)
       throw new Error(`El tipo de reclamo con id ${id} no existe`);
-    return true;
   }
 
-  async validateProyecto(id: string): Promise<boolean> {
-    const proyecto = await this.proyectoService.findOneEmpleado(id);
+  async validateProyecto(id: string): Promise<void> {
+    const proyecto = await this.proyectoService.findById(id);
     if (!proyecto) throw new Error(`El proyecto con id ${id} no existe`);
-    return true;
   }
 
-  async validateReclamo(id: string): Promise<boolean> {
-    const reclamo = await this.repository.findOne(id);
+  async validateReclamo(id: string): Promise<void> {
+    const reclamo = await this.repository.findById(id);
     if (!reclamo) throw new Error(`El reclamo con id ${id} no existe`);
-    return true;
   }
 
-  async validateArea(id: string): Promise<boolean> {
-    const area = await this.areaService.findOne(id);
+  async validateArea(id: string): Promise<void> {
+    const area = await this.areaService.findById(id);
     if (!area) throw new Error(`El área con id ${id} no existe`);
-    return true;
   }
 
-  validateCambioEstadoEmpleado(estadoActual: string, estadoNuevo: string) {
-    if (estadoActual === estadoNuevo) {
-      throw new Error('El estado actual es el mismo que el nuevo');
-    }
-
+  validateCambioEstado(estadoActual: string, estadoNuevo?: string): void {
     if (estadoActual === Estados.RESUELTO) {
       throw new Error('No se puede actualizar un reclamo resuelto');
+    }
+
+    if (estadoActual === estadoNuevo) {
+      throw new Error('El estado actual no puede ser el nuevo estado');
     }
 
     if (estadoNuevo === Estados.PENDIENTE) {
       throw new Error('El estado nuevo no puede pasar a pendiente');
     }
-
-    return true;
   }
 
-  validateCambioEstadoCliente(estado: Estados) {
-    if (estado === Estados.RESUELTO) {
-      throw new Error('No se puede reasignar el área de un reclamo resuelto');
-    }
-  }
-
-  async validateCliente(clienteId: string): Promise<boolean> {
-    const cliente = await this.clienteService.findOne(clienteId);
+  async validateCliente(clienteId: string): Promise<void> {
+    const cliente = await this.clienteService.findById(clienteId);
     if (!cliente) throw new Error(`El cliente con id ${clienteId} no existe`);
-    return true;
+  }
+
+  async validateCreate(
+    tipoReclamoId: string,
+    proyectoId: string,
+    areaId: string,
+  ): Promise<void> {
+    // Agrupa los 3 métodos de validación
+    await this.validateTipoReclamo(tipoReclamoId);
+    await this.validateProyecto(proyectoId);
+    await this.validateArea(areaId);
+  }
+  async validateReassignArea(reclamoId: string, areaId: string): Promise<void> {
+    // valida el reclamo y su area
+    await this.validateReclamo(reclamoId);
+    await this.validateArea(areaId);
   }
 }

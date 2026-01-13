@@ -1,6 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { TipoProyectoDTO } from './dtos/tipo-proyecto.dto';
+import { aTipoProyectoDTO } from './mappers/tipo-proyecto.mapper';
 import type { ITipoProyectoRepository } from './repositories/tipo-proyecto.repository.interface';
-import { aTipoProyectoDto } from './mappers/tipo-proyecto.mapper';
 
 @Injectable()
 export class TipoProyectoService {
@@ -9,18 +10,18 @@ export class TipoProyectoService {
     private readonly repository: ITipoProyectoRepository,
   ) {}
 
-  async findAll() {
+  async findAll(): Promise<TipoProyectoDTO[]> {
     const tipoProyectos = await this.repository.findAll();
-    return tipoProyectos.map(aTipoProyectoDto);
+    return tipoProyectos.map((tipoProyecto) => aTipoProyectoDTO(tipoProyecto));
   }
 
-  async findOne(id: string) {
-    const tipoProyecto = await this.repository.findOne(id);
+  async findById(id: string): Promise<TipoProyectoDTO> {
+    const tipoProyecto = await this.repository.findById(id);
 
     if (!tipoProyecto) {
       throw new NotFoundException('No existe un tipo de proyecto con ese ID.');
     }
 
-    return aTipoProyectoDto(tipoProyecto);
+    return aTipoProyectoDTO(tipoProyecto);
   }
 }

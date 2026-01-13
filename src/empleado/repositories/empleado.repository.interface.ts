@@ -1,13 +1,14 @@
 import { Empleado } from '@prisma/client';
-import { EmpleadoUpdateData } from '../interfaces/empleado-update.interface';
-import { EmpleadoCreateData } from '../interfaces/empleado-create.interface';
+import {
+  EmpleadoCreateData,
+  EmpleadoUpdateData,
+} from '../interfaces/empleado.interface';
 
 export interface IEmpleadoRepository {
   create(data: EmpleadoCreateData): Promise<Empleado>;
-  findAll(): Promise<Empleado[]>;
-  findByEmail(email: string): Promise<Empleado | null>;
+  update(data: EmpleadoUpdateData): Promise<Empleado>;
+  assignArea(id: string, area: string): Promise<Empleado>;
   findById(id: string): Promise<Empleado | null>;
-  update(id: string, data: EmpleadoUpdateData): Promise<Empleado>;
-  softDelete(id: string): Promise<void>;
-  asignarArea(email: string, area: string): Promise<Empleado>;
+  findByEmail(email: string): Promise<Empleado | null>;
+  delete(id: string): Promise<void>;
 }

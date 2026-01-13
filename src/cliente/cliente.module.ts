@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ClienteService } from './cliente.service';
 import { ClienteController } from './cliente.controller';
+import { ClienteService } from './cliente.service';
 import { ClienteRepository } from './repositories/cliente.repository';
+import { ClienteValidator } from './validators/cliente.validator';
 
 @Module({
   imports: [],
@@ -9,8 +10,9 @@ import { ClienteRepository } from './repositories/cliente.repository';
   providers: [
     ClienteService,
     ClienteRepository,
+    ClienteValidator,
     { provide: 'IClienteRepository', useClass: ClienteRepository },
   ],
-  exports: [ClienteService],
+  exports: [ClienteService, ClienteValidator],
 })
 export class ClienteModule {}

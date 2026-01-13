@@ -3,7 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { EmpleadoService } from './empleado.service';
 import { AreaService } from 'src/area/area.service';
 import { RegisterDto } from 'src/auth/dtos/register.dto';
-import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
+import { UpdateEmpleadoDto } from './dtos/update-empleado.dto';
 import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
 import { Role } from 'src/common/enums/role.enum';
 

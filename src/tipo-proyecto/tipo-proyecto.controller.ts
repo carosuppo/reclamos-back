@@ -1,27 +1,29 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { TipoProyectoService } from './tipo-proyecto.service';
+import { ApiTags } from '@nestjs/swagger';
 import {
-  SwaggerFindAllTipoProyecto,
-  SwaggerFindOneTipoProyecto,
-} from './swaggers/tipo-proyecto.swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+  SwaggerFindAll,
+  SwaggerFindById,
+} from '../common/decorators/swaggers/controller.swagger';
+import { JwtAuthGuard } from '../common/guards/jwt.guard';
+import { ObjectIdPipe } from '../common/pipes/object-id.pipe';
+import { TipoProyectoDTO } from './dtos/tipo-proyecto.dto';
+import { TipoProyectoService } from './tipo-proyecto.service';
 
-@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
+@ApiTags('Tipo de proyecto')
 @Controller('tipo-proyecto')
 export class TipoProyectoController {
   constructor(private readonly service: TipoProyectoService) {}
 
-  @SwaggerFindAllTipoProyecto()
+  @SwaggerFindAll('TipoProyecto', TipoProyectoDTO)
   @Get()
-  findAll() {
+  findAll(): Promise<TipoProyectoDTO[]> {
     return this.service.findAll();
   }
 
-  @SwaggerFindOneTipoProyecto()
+  @SwaggerFindById('TipoProyecto', TipoProyectoDTO)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+  findById(@Param('id', ObjectIdPipe) id: string): Promise<TipoProyectoDTO> {
+    return this.service.findById(id);
   }
 }

@@ -1,29 +1,31 @@
-import { Medidas } from 'src/common/enums/medidas.enum';
 import {
-  ReclamoAreaField,
-  ReclamoCriticidadField,
-  ReclamoDescripcionField,
-  ReclamoPrioridadField,
-  ReclamoProyectoField,
-  ReclamoTipoField,
-} from '../swaggers/reclamo.dto.swagger';
+  IsValidDescription,
+  IsValidEnum,
+  IsValidId,
+} from '../../common/decorators/swaggers/dto.swagger';
+import { Medidas } from '../../common/enums/medidas.enum';
 
-export class CreateReclamoDto {
-  @ReclamoTipoField()
+export class CreateReclamoDTO {
+  @IsValidId('Tipo de reclamo') // Nombre de la tabla
   tipoReclamoId: string;
 
-  @ReclamoDescripcionField()
-  descripcion: string;
+  @IsValidId('Proyecto')
+  proyectoId: string;
 
-  @ReclamoPrioridadField()
-  prioridad: Medidas;
-
-  @ReclamoCriticidadField()
-  criticidad: Medidas;
-
-  @ReclamoAreaField()
+  @IsValidId('Área')
   areaId: string;
 
-  @ReclamoProyectoField()
-  proyectoId: string;
+  @IsValidDescription(
+    80, // Máx caracteres
+    true, // Requerido?
+    'Falla en el sistema', // Ejemplo
+    'Descripción del reclamo', // Descripción
+  )
+  descripcion: string;
+
+  @IsValidEnum('Prioridad', Medidas) // Nombre del enum y posibles valores
+  prioridad: Medidas;
+
+  @IsValidEnum('Criticidad', Medidas)
+  criticidad: Medidas;
 }

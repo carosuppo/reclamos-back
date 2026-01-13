@@ -1,12 +1,17 @@
 import {
-  ReclamoDescripcionField,
-  ReclamoReasignarAreaField,
-} from '../swaggers/reclamo.dto.swagger';
+  IsValidDescription,
+  IsValidId,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class ReasignarAreaDto {
-  @ReclamoDescripcionField()
+export class ReasignarAreaDTO {
+  @IsValidDescription(
+    100, // Máx caracteres
+    true, // Requerido?
+    'Este reclamo lo puede resolver el área de ventas', // Ejemplo
+    'Descripción del reclamo', // Descripción
+  )
   descripcion: string;
 
-  @ReclamoReasignarAreaField()
+  @IsValidId('Área') // Nombre de la tabla
   areaId: string;
 }

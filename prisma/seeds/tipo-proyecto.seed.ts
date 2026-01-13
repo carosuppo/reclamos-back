@@ -1,7 +1,10 @@
 import prisma from '../../src/lib/db';
 
 async function main() {
-  // Primero borramos proyectos porque dependen de TipoProyecto
+  /*Borramos los tipos de proyecto con sus proyectos
+    Necesitamos borrar los proyectos, porque sino habrán proyectos con tipos de proyecto que no existen*/
+  await prisma.cambioEstado.deleteMany({});
+  await prisma.reclamo.deleteMany({});
   await prisma.proyecto.deleteMany({});
   await prisma.tipoProyecto.deleteMany({});
 
