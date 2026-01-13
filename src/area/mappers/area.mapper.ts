@@ -1,13 +1,32 @@
 import { Area } from '@prisma/client';
-import { AreaDto } from '../dtos/area.dto';
+import { AreaDTO } from '../dtos/area.dto';
+import { CreateAreaDTO, UpdateAreaDTO } from '../dtos/create-area.dto';
+import { areaCreateData, areaUpdateData } from '../interfaces/area.interface';
 
-export function toAreaDto(area: Area | null): AreaDto | null {
-  if (!area) return null;
+export const AreaMapper = {
+  // Toma la información de la base de datos y la pasa a formato DTO
+  toAreaDto(area: Area): AreaDTO {
+    return {
+      id: area.id,
+      nombre: area.nombre,
+      descripcion: area.descripcion ?? '',
+    };
+  },
 
-  const dto: AreaDto = {
-    id: area.id,
-    nombre: area.nombre,
-    descripcion: area.descripcion ?? undefined,
-  };
-  return dto;
-}
+  // Toma la información del DTO y la pasa a formato de la base de datos
+  toAreaCreateData(dto: CreateAreaDTO): areaCreateData {
+    return {
+      nombre: dto.nombre,
+      descripcion: dto.descripcion,
+    };
+  },
+
+  // Toma la información del DTO y la pasa a formato de la base de datos
+  toAreaUpdateData(id: string, dto: UpdateAreaDTO): areaUpdateData {
+    return {
+      id: id,
+      nombre: dto.nombre,
+      descripcion: dto.descripcion,
+    };
+  },
+};

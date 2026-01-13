@@ -1,12 +1,20 @@
+import { PartialType } from '@nestjs/swagger';
 import {
-  TipoProyectoDescripcionField,
-  TipoProyectoNombreField,
-} from '../swaggers/tipo-proyecto-dto.swagger';
+  IsValidDescription,
+  IsValidName,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class CreateTipoProyectoDto {
-  @TipoProyectoNombreField()
+export class CreateTipoProyectoDTO {
+  @IsValidName(40, 'Desarrollo de Software', 'Nombre del tipo de proyecto') // Máx carácteres, ejemplo, descripción
   nombre!: string;
 
-  @TipoProyectoDescripcionField()
+  @IsValidDescription(
+    100, // Máx carácteres
+    false, // Requerido o no
+    'Descripción', // Ejemplo
+    'Descripción del tipo de proyecto', // Descripción
+  )
   descripcion?: string;
 }
+
+export class UpdateTipoProyectoDto extends PartialType(CreateTipoProyectoDTO) {}

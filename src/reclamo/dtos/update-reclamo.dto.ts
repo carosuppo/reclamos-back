@@ -1,31 +1,28 @@
-import { IsOptional } from 'class-validator';
-import { Medidas } from '../../common/enums/medidas.enum';
 import {
-  ReclamoAreaField,
-  ReclamoCriticidadField,
-  ReclamoDescripcionField,
-  ReclamoPrioridadField,
-  ReclamoTipoField,
-} from '../swaggers/reclamo.dto.swagger';
+  IsValidDescription,
+  IsValidEnum,
+  IsValidId,
+} from '../../common/decorators/swaggers/dto.swagger';
+import { Medidas } from '../../common/enums/medidas.enum';
 
-export class UpdateReclamoDto {
-  @IsOptional()
-  @ReclamoTipoField()
+export class UpdateReclamoDTO {
+  @IsValidId('Tipo de reclamo', false) // Nombre de la tabla, Requerido?
   tipoReclamoId?: string;
 
-  @IsOptional()
-  @ReclamoAreaField()
+  @IsValidId('Área', false)
   areaId?: string;
 
-  @IsOptional()
-  @ReclamoDescripcionField()
+  @IsValidDescription(
+    100, // Máx caracteres
+    false, // Requerido?
+    'Descripción del reclamo', // Ejemplo
+    'Descripción detallada del reclamo', // Descripción
+  )
   descripcion: string;
 
-  @IsOptional()
-  @ReclamoPrioridadField()
+  @IsValidEnum('Prioridad', Medidas, false) // Nombre del enum y posibles valores
   prioridad?: Medidas;
 
-  @IsOptional()
-  @ReclamoCriticidadField()
+  @IsValidEnum('Criticidad', Medidas, false)
   criticidad?: Medidas;
 }

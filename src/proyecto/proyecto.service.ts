@@ -1,61 +1,65 @@
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { TipoProyectoValidator } from '../tipo-proyecto/validators/tipo-proyecto.validator';
 import {
-  BadRequestException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { CreateProyectoDto } from './dtos/create-proyecto.dto';
-import { UpdateProyectoDto } from './dtos/update-proyecto.dto';
+  CreateProyectoDTO,
+  UpdateProyectoDTO,
+} from './dtos/create-proyecto.dto';
+import { ProyectoDTO } from './dtos/proyecto.dto';
+import { ProyectoMapper as mapper } from './mappers/proyecto.mapper';
 import type { IProyectoRepository } from './repositories/proyecto.repository.interface';
-import { aProyectoDto, aProyectoInterfaz } from './mappers/proyecto.mapper';
-import { ProyectoInterfaz } from './interfaces/proyecto.interfaz';
-import { ProyectoValidador } from './validators/proyecto.validator';
 
 @Injectable()
 export class ProyectoService {
   constructor(
     @Inject('IProyectoRepository')
     private readonly repository: IProyectoRepository,
-    private readonly validator: ProyectoValidador,
+    private readonly tipoProyectoValidator: TipoProyectoValidator,
   ) {}
 
-  async create(dto: CreateProyectoDto, user: string) {
-    await this.validator.validateTipoProyecto(dto.tipoProyectoId);
+  async create(dto: CreateProyectoDTO, user: string): Promise<boolean> {
+    // Validar que el tipo de proyecto exista antes de crear el proyecto
+    await this.tipoProyectoValidator.validateTipoProyecto(dto.tipoProyectoId);
 
-    const proyectoInterfaz = aProyectoInterfaz(dto, user) as ProyectoInterfaz;
-    const proyecto = await this.repository.create(proyectoInterfaz);
-    return aProyectoDto(proyecto);
+    // Mapear el DTO para llevarlo al formato esperado por el repositorio
+    const data = mapper.aProyectoCreateData(dto, user);
+
+    await this.repository.create(data);
+    return true;
   }
 
-  async findAll(user: string) {
+  async update(id: string, dto: UpdateProyectoDTO): Promise<boolean> {
+    // Validar que el tipo de proyecto existan
+    await this.tipoProyectoValidator.validateTipoProyecto(dto.tipoProyectoId);
+
+    // Mapear el DTO para llevarlo al formato esperado por el repositorio
+    const proyectoInterfaz = mapper.aProyectoUpdateData(id, dto);
+
+    await this.repository.update(proyectoInterfaz);
+    return true;
+  }
+
+  async findAll(user: string): Promise<ProyectoDTO[]> {
     const proyectos = await this.repository.findAll(user);
-    return proyectos.map(aProyectoDto);
+
+    // Mapear los proyectos para llevarlo al formato de transferencia de datos
+    return proyectos.map((proyecto) => mapper.aProyectoDTO(proyecto));
   }
 
-  async findOneEmpleado(id: string) {
-    const proyecto = await this.repository.findOne(id);
+  async findById(id: string): Promise<ProyectoDTO> {
+    const proyecto = await this.repository.findById(id);
 
     if (!proyecto) {
       throw new NotFoundException('Proyecto no encontrado');
     }
 
-    return aProyectoDto(proyecto);
+    // Mapear el proyecto para llevarlo al formato de transferencia de datos
+    return mapper.aProyectoDTO(proyecto);
   }
 
-  async findOneByCliente(id: string, clienteId: string) {
-    const proyecto = await this.repository.findByIdAndCliente(id, clienteId);
-
-    if (!proyecto) {
-      throw new BadRequestException(
-        'Proyecto inexistente o no pertenece al cliente',
-      );
-    }
-
-    return aProyectoDto(proyecto);
-  }
-
-  async findByTipoProyecto(tipoProyectoId: string, user: string) {
+  async findByTipoProyecto(
+    tipoProyectoId: string,
+    user: string,
+  ): Promise<ProyectoDTO[]> {
     const proyectos = await this.repository.findByTipoProyecto(
       tipoProyectoId,
       user,
@@ -65,42 +69,14 @@ export class ProyectoService {
       throw new NotFoundException('No hay proyectos con este tipo de proyecto');
     }
 
-    return proyectos.map(aProyectoDto);
+    // Mapear los proyectos para llevarlo al formato de transferencia de datos
+    return proyectos.map((proyecto) => mapper.aProyectoDTO(proyecto));
   }
 
-  async update(id: string, dto: UpdateProyectoDto, userId: string) {
-    const proyectoExistente = await this.repository.findByIdAndCliente(
-      id,
-      userId,
-    );
+  async delete(id: string): Promise<boolean> {
+    // No se necesita validar si el proyecto existe porque el repositorio lo hace
+    await this.repository.delete(id);
 
-    if (!proyectoExistente) {
-      throw new ForbiddenException(
-        'No tenés permiso para modificar este proyecto',
-      );
-    }
-
-    if (dto.tipoProyectoId) {
-      await this.validator.validateTipoProyecto(dto.tipoProyectoId);
-    }
-
-    const proyectoInterfaz = aProyectoInterfaz(dto, userId);
-    const proyecto = await this.repository.update(id, proyectoInterfaz);
-    return aProyectoDto(proyecto);
-  }
-
-  async remove(id: string, userId: string) {
-    const proyectoExistente = await this.repository.findByIdAndCliente(
-      id,
-      userId,
-    );
-
-    if (!proyectoExistente) {
-      throw new ForbiddenException(
-        'No tenés permiso para modificar este proyecto',
-      );
-    }
-
-    return await this.repository.remove(id);
+    return true;
   }
 }

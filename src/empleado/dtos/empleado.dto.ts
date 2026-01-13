@@ -1,25 +1,23 @@
-import { AreaDto } from '../../area/dtos/area.dto';
 import {
-  EmpleadoAreaField,
-  EmpleadoEmailField,
-  EmpleadoIdField,
-  EmpleadoNombreField,
-  EmpleadoTelefonoField,
-} from '../swaggers/empleado.dto.swagger';
+  IsValidEmail,
+  IsValidId,
+  IsValidName,
+  IsValidTelephone,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class EmpleadoDto {
-  @EmpleadoIdField()
+export class EmpleadoDTO {
+  @IsValidId('Empleado') // Nombre de la tabla
   id: string;
 
-  @EmpleadoEmailField()
+  @IsValidEmail()
   email: string;
 
-  @EmpleadoTelefonoField()
+  @IsValidTelephone()
   telefono: string;
 
-  @EmpleadoNombreField()
+  @IsValidName(50, 'Juan Pérez', 'Nombre del empleado') // Máx carácteres, Ejemplo, Descripción
   nombre: string;
 
-  @EmpleadoAreaField()
-  area: AreaDto | null;
+  @IsValidId('Empleado', false) // Nombre de la tabla y si es requerido o no
+  area: string;
 }

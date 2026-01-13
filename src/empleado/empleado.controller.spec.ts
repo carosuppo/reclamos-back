@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmpleadoController } from './empleado.controller';
 import { EmpleadoService } from './empleado.service';
-import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
+import { UpdateEmpleadoDto } from './dtos/update-empleado.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { BadRequestException } from '@nestjs/common';

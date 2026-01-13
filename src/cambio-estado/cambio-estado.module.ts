@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common';
-import { CambioEstadoService } from './cambio-estado.service';
+import { AreaModule } from '../area/area.module';
 import { CambioEstadoController } from './cambio-estado.controller';
-import { AreaModule } from 'src/area/area.module';
+import { CambioEstadoService } from './cambio-estado.service';
 import { CambioEstadoRepository } from './repositories/cambio-estado.repository';
-import { CambioEstadoValidator } from './validators/cambio-estado.validator';
 
 @Module({
   imports: [AreaModule],
   controllers: [CambioEstadoController],
   providers: [
     CambioEstadoService,
-    CambioEstadoValidator,
     { provide: 'ICambioEstadoRepository', useClass: CambioEstadoRepository },
   ],
   exports: [CambioEstadoService, 'ICambioEstadoRepository'],

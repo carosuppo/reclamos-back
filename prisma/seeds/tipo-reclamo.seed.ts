@@ -1,7 +1,9 @@
 import prisma from '../../src/lib/db';
 
 async function main() {
-  // Primero borramos reclamos porque dependen de TipoReclamo
+  /*Borramos los tipos de reclamo con sus reclamos y su historial de estado
+    Necesitamos borrar lo demás, porque sino habrán reclamos y estados con relaciones que no existen*/
+  await prisma.cambioEstado.deleteMany({});
   await prisma.reclamo.deleteMany({});
   await prisma.tipoReclamo.deleteMany({});
 

@@ -8,8 +8,8 @@ import {
   ApiUnauthorizedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { RegisterDto } from '../dtos/register.dto';
-import { LoginDto } from '../dtos/login.dto';
+import { RegisterDTO } from '../dtos/register.dto';
+import { LoginDTO } from '../dtos/login.dto';
 
 export function SwaggerRegisterCliente() {
   return applyDecorators(
@@ -21,11 +21,11 @@ export function SwaggerRegisterCliente() {
         'El email debe ser único en el sistema.',
     }),
 
-    ApiExtraModels(RegisterDto),
+    ApiExtraModels(RegisterDTO),
 
     ApiBody({
       description: 'Datos requeridos para registrar un cliente',
-      type: RegisterDto,
+      type: RegisterDTO,
       examples: {
         ejemploCorrecto: {
           summary: 'Cliente válido',
@@ -79,11 +79,11 @@ export function SwaggerRegisterEmpleado() {
         'El email debe ser único.',
     }),
 
-    ApiExtraModels(RegisterDto),
+    ApiExtraModels(RegisterDTO),
 
     ApiBody({
       description: 'Datos necesarios para registrar un empleado',
-      type: RegisterDto,
+      type: RegisterDTO,
       examples: {
         ejemploCorrecto: {
           summary: 'Empleado válido',
@@ -128,11 +128,11 @@ export function SwaggerLogin() {
         'Aplica tanto para clientes como empleados.',
     }),
 
-    ApiExtraModels(LoginDto),
+    ApiExtraModels(LoginDTO),
 
     ApiBody({
       description: 'Credenciales del usuario',
-      type: LoginDto,
+      type: LoginDTO,
       examples: {
         ejemploCorrecto: {
           summary: 'Login exitoso',

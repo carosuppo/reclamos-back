@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ReclamoService } from './reclamo.service';
-import { ReclamoController } from './reclamo.controller';
-import { ReclamoRepository } from './repositories/reclamo.repository';
+import { AreaModule } from '../area/area.module';
 import { CambioEstadoModule } from '../cambio-estado/cambio-estado.module';
-import { TipoReclamoModule } from 'src/tipo-reclamo/tipo-reclamo.module';
-import { ProyectoModule } from 'src/proyecto/proyecto.module';
-import { ReclamoValidator } from './validators/reclamo.validator';
+import { ClienteModule } from '../cliente/cliente.module';
+import { EmpleadoModule } from '../empleado/empleado.module';
+import { ProyectoModule } from '../proyecto/proyecto.module';
+import { TipoReclamoModule } from '../tipo-reclamo/tipo-reclamo.module';
 import { ReclamoHelper } from './helpers/reclamo.helper';
-import { AreaModule } from 'src/area/area.module';
-import { EmpleadoModule } from 'src/empleado/empleado.module';
-import { AreaValidator } from './validators/area.validator';
-import { ClienteModule } from 'src/cliente/cliente.module';
+import { ReclamoController } from './reclamo.controller';
+import { ReclamoService } from './reclamo.service';
+import { ReclamoRepository } from './repositories/reclamo.repository';
+import { ReclamoValidator } from './validators/reclamo.validator';
 
 @Module({
   imports: [
@@ -26,7 +25,6 @@ import { ClienteModule } from 'src/cliente/cliente.module';
     ReclamoService,
     ReclamoValidator,
     ReclamoHelper,
-    AreaValidator,
     { provide: 'IReclamoRepository', useClass: ReclamoRepository },
   ],
 })
