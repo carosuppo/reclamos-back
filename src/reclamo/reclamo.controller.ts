@@ -39,7 +39,10 @@ export class ReclamoController {
   @SwaggerCreate('Reclamo', CreateReclamoDTO, ReclamoDTO)
   @Roles(Role.CLIENTE) // Ingreso permitido sólo para clientes
   @Post()
-  create(@Body() dto: CreateReclamoDTO, @CurrentUser() userId: string) {
+  create(
+    @Body() dto: CreateReclamoDTO,
+    @CurrentUser() userId: string,
+  ): Promise<ReclamoDTO> {
     return this.service.create(dto, userId);
   }
 
@@ -47,10 +50,10 @@ export class ReclamoController {
   @Roles(Role.CLIENTE) // Ingreso permitido sólo para clientes
   @Patch('/:id')
   update(
-    @Param('id', ObjectIdPipe) id: string,
+    @Param('id', ObjectIdPipe) id: string, // Valida que el id sea valido con el pipe
     @Body() dto: UpdateReclamoDTO,
     @CurrentUser() userId: string,
-  ) {
+  ): Promise<ReclamoDTO> {
     return this.service.update(id, dto, userId);
   }
 
@@ -61,7 +64,7 @@ export class ReclamoController {
     @Param('id', ObjectIdPipe) id: string,
     @Body() dto: UpdateEstadoDTO,
     @CurrentUser() userId: string,
-  ) {
+  ): Promise<ReclamoDTO> {
     return this.service.changeEstado(id, dto, userId);
   }
 
@@ -72,42 +75,42 @@ export class ReclamoController {
     @Param('id', ObjectIdPipe) id: string,
     @Body() dto: ReasignarAreaDTO,
     @CurrentUser() userId: string,
-  ) {
+  ): Promise<ReclamoDTO> {
     return this.service.reassignArea(id, dto, userId);
   }
 
   @SwaggerFindAll('Reclamos de cliente', ReclamoDTO)
   @Roles(Role.CLIENTE) // Ingreso permitido sólo para clientes
   @Get()
-  findByCliente(@CurrentUser() userId: string) {
+  findByCliente(@CurrentUser() userId: string): Promise<ReclamoDTO[]> {
     return this.service.findByCliente(userId);
   }
 
   @SwaggerFindAll('Reclamos de un área', ReclamoDTO)
   @Roles(Role.EMPLEADO) // Ingreso permitido sólo para empleados
   @Get('area')
-  findByArea(@CurrentUser() userId: string) {
+  findByArea(@CurrentUser() userId: string): Promise<ReclamoDTO[]> {
     return this.service.findByArea(userId);
   }
 
   @SwaggerFindAll('Reclamos con filtros', ReclamoDTO)
   @Roles(Role.EMPLEADO) // Ingreso permitido sólo para empleados
   @Get('filtros')
-  countByFiltros(@Query() dto: FiltersDTO) {
+  countByFiltros(@Query() dto: FiltersDTO): Promise<number> {
     return this.service.countByFiltros(dto);
   }
 
   @SwaggerTiemProm()
   @Roles(Role.EMPLEADO) // Ingreso permitido sólo para empleados
   @Get('tiempo-promedio-resolucion')
-  getTiemProm(@Query('areaId', ObjectIdPipe) areaId: string) {
+  getTiemProm(@Query('areaId', ObjectIdPipe) areaId: string): Promise<number> {
     return this.service.getTiemProm(areaId);
   }
 
   @SwaggerCantProm()
   @Roles(Role.EMPLEADO) // Ingreso permitido sólo para empleados
   @Get('cantidad-promedio-resolucion')
-  getCantProm(@Query('areaId', ObjectIdPipe) areaId: string) {
+  getCantProm(@Query('areaId', ObjectIdPipe) areaId: string): Promise<number> {
     return this.service.getCantProm(areaId);
   }
 }
