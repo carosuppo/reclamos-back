@@ -23,4 +23,5 @@ export interface IReclamoRepository {
   ): Promise<{ createdAt: Date; updatedAt: Date }[]>;
   countTotalByArea(areaId: string): Promise<number>;
   countResueltosByArea(areaId: string): Promise<number>;
+  findById(id: string): Promise<Reclamo | null>;
 }

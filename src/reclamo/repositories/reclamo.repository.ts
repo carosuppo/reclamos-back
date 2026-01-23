@@ -209,6 +209,14 @@ export class ReclamoRepository implements IReclamoRepository {
     });
   }
 
+  async findById(id: string): Promise<Reclamo | null> {
+    return prisma.reclamo.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
   async findByFiltros(filtros: FiltrosReclamoData): Promise<number> {
     const where: Prisma.ReclamoWhereInput = {};
 

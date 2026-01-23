@@ -91,7 +91,7 @@ export class ReclamoService {
 
     const updated = await this.repository.updateEstado(dataCambioEstado);
 
-    return toReclamoDto(updated);
+    return toReclamoDtoExtended(updated as ReclamoWithRelations);
   }
 
   async reassignArea(id: string, dto: ReasignarAreaDto, userId: string) {
@@ -117,7 +117,7 @@ export class ReclamoService {
 
     const updated = await this.repository.reassignArea(dataCambioEstado);
 
-    return toReclamoDto(updated);
+    return toReclamoDtoExtended(updated as ReclamoWithRelations);
   }
 
   async findByArea(userId: string): Promise<ReclamoDto[]> {
@@ -167,5 +167,10 @@ export class ReclamoService {
     const resueltos = await this.repository.countResueltosByArea(areaId);
 
     return this.helper.calcularCantidadPromedio(resueltos, total);
+  }
+
+  async findById(id: string): Promise<ReclamoDto> {
+    const reclamo = await this.repository.findById(id);
+    return toReclamoDtoExtended(reclamo as ReclamoWithRelations);
   }
 }

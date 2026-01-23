@@ -104,6 +104,11 @@ export class ReclamoController {
     return this.service.findByArea(userId);
   }
 
+  @Get(':id')
+  findById(@Param('id') reclamoId: string) {
+    return this.service.findById(reclamoId);
+  }
+
   @SwaggerFindReclamosByFiltros()
   @Roles(Role.EMPLEADO)
   @Get('filtros')

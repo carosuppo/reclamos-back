@@ -42,4 +42,10 @@ export class ReclamoDto {
 
   @ReclamoAreaField()
   areaId?: string;
+
+  @ApiProperty({ description: 'Fecha de creación' })
+  createdAt: Date;
+
+  @ApiProperty({ description: 'Ultima actualización' })
+  updatedAt: Date;
 }

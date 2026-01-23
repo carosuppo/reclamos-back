@@ -17,6 +17,8 @@ export function toReclamoDto(reclamo: Reclamo): ReclamoDto {
     criticidad: toMedidasEnum(reclamo.criticidad),
     descripcion: reclamo.descripcion,
     estado: reclamo.estado,
+    createdAt: reclamo.createdAt,
+    updatedAt: reclamo.updatedAt,
   };
 }
 
@@ -33,5 +35,7 @@ export function toReclamoDtoExtended(
     criticidad: toMedidasEnum(reclamo.criticidad),
     descripcion: reclamo.descripcion,
     estado: reclamo.estado,
+    createdAt: reclamo.createdAt,
+    updatedAt: reclamo.updatedAt,
   };
 }
