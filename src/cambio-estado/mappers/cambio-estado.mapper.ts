@@ -1,6 +1,8 @@
 import { CambioEstado, Estados } from '@prisma/client';
 import { ReasignarAreaDTO } from '../../reclamo/dtos/reasignar-area.dto';
 import { UpdateEstadoDTO } from '../../reclamo/dtos/update-estado.dto';
+import { CambioEstadoConUsuario } from '../cambio-estado.type';
+import { CambioEstadoConUsuarioDTO } from '../dtos/cambio-estado-con-usuario.dto';
 import { CambioEstadoDTO } from '../dtos/cambio-estado.dto';
 import { CreateCambioEstadoDTO } from '../dtos/create-cambio-estado.dto';
 import { CambioEstadoCreateData } from '../interfaces/cambio-estado.interface';
@@ -18,6 +20,24 @@ export const CambioEstadoMapper = {
       estado: cambio.estado,
       empleadoId: cambio.empleadoId ?? null,
       clienteId: cambio.clienteId ?? null,
+    };
+  },
+
+  toCambioEstadoConUsuarioDTO(
+    cambio: CambioEstadoConUsuario,
+  ): CambioEstadoConUsuarioDTO {
+    return {
+      id: cambio.id,
+      reclamoId: cambio.reclamoId,
+      area: {
+        id: cambio.area.id,
+        nombre: cambio.area.nombre,
+      },
+      fechaInicio: cambio.fechaInicio,
+      fechaFin: cambio.fechaFin ?? null,
+      descripcion: cambio.descripcion ?? null,
+      estado: cambio.estado,
+      usuario: cambio.empleado ?? cambio.cliente!,
     };
   },
 

@@ -3,6 +3,7 @@ import { CambioEstadoDTO } from '../../cambio-estado/dtos/cambio-estado.dto';
 import { Medidas } from '../../common/enums/medidas.enum';
 import { CreateReclamoDTO } from '../dtos/create-reclamo.dto';
 import { FiltersDTO } from '../dtos/filters.dto';
+import { ReclamoCompletoDTO } from '../dtos/reclamo-completo.dto';
 import { ReclamoDTO } from '../dtos/reclamo.dto';
 import { UpdateReclamoDTO } from '../dtos/update-reclamo.dto';
 import {
@@ -10,6 +11,7 @@ import {
   ReclamoCreateData,
   ReclamoData,
 } from '../interfaces/reclamo.interface';
+import { ReclamoCompleto } from '../reclamo.type';
 
 export const ReclamoMapper = {
   // Toma la información de la base de datos y la pasa a formato DTO
@@ -22,6 +24,28 @@ export const ReclamoMapper = {
       criticidad: Medidas[reclamo.criticidad] as Medidas,
       descripcion: reclamo.descripcion,
       estado: reclamo.estado,
+    };
+  },
+
+  toReclamoCompletoDTO(reclamo: ReclamoCompleto): ReclamoCompletoDTO {
+    return {
+      id: reclamo.id,
+      prioridad: Medidas[reclamo.prioridad] as Medidas,
+      criticidad: Medidas[reclamo.criticidad] as Medidas,
+      descripcion: reclamo.descripcion,
+      estado: reclamo.estado,
+      tipoReclamo: {
+        id: reclamo.tipoReclamo.id,
+        nombre: reclamo.tipoReclamo.nombre,
+      },
+      proyecto: {
+        id: reclamo.proyecto.id,
+        nombre: reclamo.proyecto.nombre,
+        cliente: {
+          id: reclamo.proyecto.cliente.id,
+          nombre: reclamo.proyecto.cliente.nombre,
+        },
+      },
     };
   },
 

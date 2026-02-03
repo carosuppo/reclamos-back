@@ -1,5 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Estados } from '@prisma/client';
+import { CambioEstadoConUsuarioDTO } from './dtos/cambio-estado-con-usuario.dto';
 import { CambioEstadoDTO } from './dtos/cambio-estado.dto';
 import { CambioEstadoMapper as mapper } from './mappers/cambio-estado.mapper';
 import type { ICambioEstadoRepository } from './repositories/cambio-estado.repository.interface';
@@ -11,11 +12,11 @@ export class CambioEstadoService {
     private readonly repository: ICambioEstadoRepository,
   ) {}
 
-  async findByReclamo(id: string): Promise<CambioEstadoDTO[]> {
+  async findByReclamo(id: string): Promise<CambioEstadoConUsuarioDTO[]> {
     const cambios = await this.repository.findByReclamoId(id);
 
     // Mapear array de cambios de estado al formato de transferencia de datos
-    return cambios.map((cambio) => mapper.toCambioEstadoDTO(cambio));
+    return cambios.map((cambio) => mapper.toCambioEstadoConUsuarioDTO(cambio));
   }
 
   async findByEstado(estado: Estados): Promise<CambioEstadoDTO[]> {

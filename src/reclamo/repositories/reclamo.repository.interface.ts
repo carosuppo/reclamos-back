@@ -5,6 +5,7 @@ import {
   ReclamoCreateData,
   ReclamoData,
 } from '../interfaces/reclamo.interface';
+import { ReclamoCompleto } from '../reclamo.type';
 
 export interface IReclamoRepository {
   create(data: ReclamoCreateData, userId: string): Promise<Reclamo>;
@@ -13,7 +14,8 @@ export interface IReclamoRepository {
   reassignArea(data: CambioEstadoCreateData): Promise<Reclamo>;
   findById(id: string): Promise<Reclamo | null>;
   findAll(): Promise<Reclamo[]>;
-  findByCliente(clienteId: string): Promise<Reclamo[]>;
+  findByCliente(clienteId: string): Promise<ReclamoCompleto[]>;
+  findByArea(areaId: string): Promise<ReclamoCompleto[]>;
   findDates(
     areaId: string,
     estado?: Estados,
