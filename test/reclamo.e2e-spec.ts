@@ -26,8 +26,8 @@ describe('Reclamo E2E - GET /reclamo', () => {
     const loginRes = (await request
       .post('/auth/login')
       .send({
-        email: 'clienteprueba@gmail.com',
-        contraseña: '123456',
+        email: 'cliente1@example.com',
+        contraseña: 'password123',
       })
       .expect(200)) as unknown as { body: { access_token: string } };
 
@@ -70,8 +70,8 @@ describe('Reclamo E2E - GET /reclamo', () => {
     const loginEmpleado = await request
       .post('/auth/login')
       .send({
-        email: 'empleado3@gmail.com',
-        contraseña: '123456',
+        email: 'empleado1@example.com',
+        contraseña: 'password123',
       })
       .expect(200) as unknown as Response;
 

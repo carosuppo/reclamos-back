@@ -1,3 +1,17 @@
 {
-    "postman.settings.dotenv-detection-notification-visibility": false
+  "postman.settings.dotenv-detection-notification-visibility": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.preferences.organizeImports": true,
+  "javascript.preferences.importModuleSpecifier": "relative"
 }

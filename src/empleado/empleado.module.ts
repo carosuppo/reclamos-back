@@ -1,16 +1,19 @@
-import { Module } from '@nestjs/common';
-import { EmpleadoService } from './empleado.service';
+import { forwardRef, Module } from '@nestjs/common';
+import { AreaModule } from '../area/area.module';
+import { AuthModule } from '../auth/auth.module';
 import { EmpleadoController } from './empleado.controller';
+import { EmpleadoService } from './empleado.service';
 import { EmpleadoRepository } from './repositories/empleado.repository';
-import { AreaModule } from 'src/area/area.module';
+import { EmpleadoValidator } from './validators/empleado.validator';
 
 @Module({
-  imports: [AreaModule],
+  imports: [AreaModule, forwardRef(() => AuthModule)],
   controllers: [EmpleadoController],
   providers: [
     EmpleadoService,
+    EmpleadoValidator,
     { provide: 'IEmpleadoRepository', useClass: EmpleadoRepository },
   ],
-  exports: [EmpleadoService],
+  exports: [EmpleadoService, EmpleadoValidator],
 })
 export class EmpleadoModule {}

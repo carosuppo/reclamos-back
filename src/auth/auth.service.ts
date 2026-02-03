@@ -1,130 +1,59 @@
-/* eslint-disable prettier/prettier */
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { RegisterDto } from './dtos/register.dto';
-import { LoginDto } from './dtos/login.dto';
-import { EmpleadoService } from 'src/empleado/empleado.service';
-import { ClienteService } from 'src/cliente/cliente.service';
-import { ClienteDto } from 'src/cliente/dtos/cliente.dto';
-import { EmpleadoDto } from 'src/empleado/dtos/empleado.dto';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { Role } from 'src/common/enums/role.enum';
-
-type BcryptTyped = {
-  hash: (data: string | Buffer, saltOrRounds: number | string) => Promise<string>;
-  compare: (data: string | Buffer, encrypted: string) => Promise<boolean>;
-};
-
-const bcryptSafe = bcrypt as unknown as BcryptTyped;
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ClienteService } from '../cliente/cliente.service';
+import { Role } from '../common/enums/role.enum';
+import { EmpleadoService } from '../empleado/empleado.service';
+import { LoginDTO } from './dtos/login.dto';
+import { RegisterDTO } from './dtos/register.dto';
+import { AuthHelper } from './helpers/auth.helper';
+import { AuthValidator } from './validators/auth.validator';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly clienteService: ClienteService,
     private readonly empleadoService: EmpleadoService,
-    private readonly jwtService: JwtService,
+    private readonly validator: AuthValidator,
+    private readonly helper: AuthHelper,
   ) {}
-  async registerCliente(
-    registerDto: RegisterDto,
+  async register(
+    dto: RegisterDTO,
+    rol: Role,
   ): Promise<{ access_token: string }> {
-    await this.validarEmailDisponible(registerDto.email);
-    await this.transformarContraseña(registerDto);
-    const cliente = await this.clienteService.register(registerDto);
-    return this.firmarToken(cliente.id, Role.CLIENTE);
+    // Validar si el mail ya existe
+    await this.validator.validateEmail(dto.email);
+
+    // Registrar usuario dependiendo del rol traído del controlador
+    return this.helper.register(dto, rol);
   }
 
-  async registerEmpleado(
-    registerDto: RegisterDto,
-  ): Promise<{ access_token: string }> {
-    await this.validarEmailDisponible(registerDto.email);
-    await this.transformarContraseña(registerDto);
-    const empleado = await this.empleadoService.register(registerDto);
-    return this.firmarToken(empleado.id, Role.EMPLEADO);
-  }
+  async login(dto: LoginDTO): Promise<{ access_token: string }> {
+    // 1. Buscar el mail como cliente
+    const cliente = await this.clienteService.findForAuth(dto.email);
 
-  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
-  const { email, contraseña } = loginDto;
-
-  // 1. Buscar cliente
-  const cliente = await this.clienteService.findForAuth(email);
-
-  if (cliente) {
-    const contraseñaValida = await this.validarContraseña(
-      cliente.contraseña,
-      contraseña
-    );
-
-    if (!contraseñaValida) {
-      throw new UnauthorizedException('Credenciales inválidas.');
+    if (cliente) {
+      // 1.2 Loguear como cliente
+      return await this.helper.login(
+        cliente.id,
+        dto.contraseña,
+        cliente.contraseña,
+        Role.CLIENTE,
+      );
     }
 
-    return this.firmarToken(cliente.id, cliente.role);
-  }
+    // 2. Buscarlo como empleado en caso de no encontrarlo como cliente
+    const empleado = await this.empleadoService.findForAuth(dto.email);
 
-  // 2. Buscar empleado
-  const empleado = await this.empleadoService.findForAuth(email);
-
-  if (empleado) {
-    const contraseñaValida = await this.validarContraseña(
-      empleado.contraseña,
-      contraseña
-    );
-
-    if (!contraseñaValida) {
-      throw new UnauthorizedException('Credenciales inválidas.');
+    if (empleado) {
+      // 2.2 Loguear como empleado
+      return await this.helper.login(
+        empleado.id,
+        dto.contraseña,
+        empleado.contraseña,
+        Role.EMPLEADO,
+      );
     }
 
-    return this.firmarToken(empleado.id, empleado.role);
-  }
-
-  // 3. No existe en ninguna tabla
-  throw new UnauthorizedException('Credenciales inválidas.');
-}
-
-
-  private async validarContraseña(
-    contraseñaHash: string,
-    contraseñaPlana: string
-  ): Promise<boolean> {
-    try {
-      return await bcryptSafe.compare(contraseñaPlana, contraseñaHash);
-    } catch {
-      // If comparing fails for any reason, treat as invalid password
-      return false;
-    }
-  }
-
-  async validarEmailDisponible(email: string): Promise<void> {
-    const existeCliente = await this.validarCliente(email);
-
-    const existeEmpleado = await this.validarEmpleado(email);
-
-    if (existeCliente != null || existeEmpleado != null) {
-      throw new BadRequestException('El email ya está en uso.');
-    }
-  }
-
-  async validarCliente(email: string): Promise<ClienteDto | null> {
-    const existeCliente = await this.clienteService.findOne(email);
-    return existeCliente;
-  }
-
-  async validarEmpleado(email: string): Promise<EmpleadoDto | null> {
-    const existeEmpleado = await this.empleadoService.findOne(email);
-    return existeEmpleado;
-  }
-
-  private async transformarContraseña(registerDto: RegisterDto): Promise<void> {
-    registerDto.contraseña = await bcryptSafe.hash(registerDto.contraseña, 10);
-  }
-
-  async firmarToken(
-    id: string,
-    role: string,
-  ): Promise<{ access_token: string }> {
-    const payload = { sub: id, role };
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
+    // 3. Al no existir en ninguna tabla, lanzar error
+    throw new UnauthorizedException('Credenciales inválidas.');
   }
 }

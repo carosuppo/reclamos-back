@@ -1,29 +1,31 @@
 import { Estados } from '@prisma/client';
 import {
-  CambioEstadoAreaIdField,
-  CambioEstadoClienteIdField,
-  CambioEstadoDescripcionField,
-  CambioEstadoEmpleadoIdField,
-  CambioEstadoEstadoField,
-  CambioEstadoReclamoIdField,
-} from '../swaggers/cambio-estado.dto.swagger';
+  IsValidDescription,
+  IsValidEnum,
+  IsValidId,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class CreateCambioEstadoDto {
-  @CambioEstadoClienteIdField()
+export class CreateCambioEstadoDTO {
+  @IsValidId('Cliente', false) // Nombre de la tabla y si es requerido o no
   clienteId?: string;
 
-  @CambioEstadoEmpleadoIdField()
+  @IsValidId('Empleado', false)
   empleadoId?: string;
 
-  @CambioEstadoReclamoIdField()
+  @IsValidId('Reclamo') // Nombre de la tabla
   reclamoId: string;
 
-  @CambioEstadoAreaIdField()
+  @IsValidId('Área')
   areaId: string;
 
-  @CambioEstadoEstadoField()
+  @IsValidEnum('Estado', Estados) // Nombre del enum y posibles valores
   estado: Estados;
 
-  @CambioEstadoDescripcionField()
+  @IsValidDescription(
+    100, // Máx caracteres
+    false, // Requerido o no
+    'Reclamo en proceso', // Ejemplo
+    'Descripción del cambio de estado', // Descripción
+  )
   descripcion: string;
 }

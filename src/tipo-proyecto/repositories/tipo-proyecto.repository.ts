@@ -1,21 +1,23 @@
-import prisma from 'src/lib/db';
+import prisma from '../../lib/db';
 import { TipoProyecto } from '@prisma/client';
 import { ITipoProyectoRepository } from './tipo-proyecto.repository.interface';
 
 export class TipoProyectoRepository implements ITipoProyectoRepository {
   async findAll(): Promise<TipoProyecto[]> {
-    const tipoProyecto = await prisma.tipoProyecto.findMany({});
-    return tipoProyecto.filter((tp) => !tp.deletedAt);
+    return await prisma.tipoProyecto.findMany({
+      where: {
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
   }
 
-  async findOne(id: string): Promise<TipoProyecto | null> {
+  async findById(id: string): Promise<TipoProyecto | null> {
     const tipoProyecto = await prisma.tipoProyecto.findFirst({
-      where: { id },
+      where: {
+        id,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
     });
-
-    if (!tipoProyecto || tipoProyecto.deletedAt) {
-      return null;
-    }
 
     return tipoProyecto;
   }

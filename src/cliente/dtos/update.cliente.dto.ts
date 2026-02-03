@@ -1,16 +1,16 @@
 import {
-  ClienteEmailField,
-  ClienteNombreField,
-  ClienteTelefonoField,
-} from '../swaggers/cliente.dto.swagger';
+  IsValidEmail,
+  IsValidName,
+  IsValidTelephone,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class UpdateClienteDto {
-  @ClienteEmailField()
+export class UpdateClienteDTO {
+  @IsValidEmail(false) // Requerido?
   email?: string;
 
-  @ClienteNombreField()
+  @IsValidName(50, 'Thomas Moreno', 'Nombre del cliente', false) // Máx carácteres, Ejemplo, Descripción, Requerido?
   nombre?: string;
 
-  @ClienteTelefonoField()
+  @IsValidTelephone(false) // Requerido?
   telefono?: string;
 }

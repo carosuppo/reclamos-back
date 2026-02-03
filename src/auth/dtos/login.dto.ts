@@ -1,9 +1,12 @@
-import { ContraseñaField, EmailField } from '../swaggers/auth.dto.swagger';
+import {
+  IsValidEmail,
+  IsValidPassword,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class LoginDto {
-  @EmailField()
+export class LoginDTO {
+  @IsValidEmail()
   email!: string;
 
-  @ContraseñaField()
+  @IsValidPassword(6, 18) // Mín caracteres, Máx caracteres
   contraseña!: string;
 }

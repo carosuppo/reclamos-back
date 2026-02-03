@@ -1,92 +1,84 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Put,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   UseGuards,
-  Req,
 } from '@nestjs/common';
-import { ProyectoService } from './proyecto.service';
-import { CreateProyectoDto } from './dtos/create-proyecto.dto';
-import { UpdateProyectoDto } from './dtos/update-proyecto.dto';
-import {
-  SwaggerCreateProyecto,
-  SwaggerFindAllProyecto,
-  SwaggerFindOneProyecto,
-  SwaggerUpdateProyecto,
-  SwaggerDeleteProyecto,
-  SwaggerFindByTipoProyecto,
-} from './swaggers/proyecto.swagger';
-import { Role } from '../common/enums/role.enum';
+import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '../common/decorators/roles.decorator';
-import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import {
+  SwaggerCreate,
+  SwaggerFindAll,
+  SwaggerFindById,
+  SwaggerUpdate,
+} from '../common/decorators/swaggers/controller.swagger';
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { Role } from '../common/enums/role.enum';
+import { JwtAuthGuard } from '../common/guards/jwt.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { ObjectIdPipe } from '../common/pipes/object-id.pipe';
+import {
+  CreateProyectoDTO,
+  UpdateProyectoDTO,
+} from './dtos/create-proyecto.dto';
+import { ProyectoDTO } from './dtos/proyecto.dto';
+import { ProyectoService } from './proyecto.service';
 
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard) // Sólo para usuarios autenticados
+@ApiTags('Proyecto')
 @Controller('proyecto')
 export class ProyectoController {
   constructor(private readonly service: ProyectoService) {}
 
-  @SwaggerCreateProyecto()
+  @SwaggerCreate('Proyecto', CreateProyectoDTO, ProyectoDTO) // Nombre de la tabla, bodyDTO, Retorno
   @Post()
-  @Roles(Role.CLIENTE)
-  create(@Body() createProyectoDto: CreateProyectoDto, @Req() req) {
-    const user = req.user.id as string;
-    return this.service.create(createProyectoDto, user);
+  @Roles(Role.CLIENTE) // Sólo para clientes
+  create(
+    @Body() dto: CreateProyectoDTO,
+    @CurrentUser() user: string,
+  ): Promise<boolean> {
+    return this.service.create(dto, user);
   }
 
-  @SwaggerFindAllProyecto()
+  @SwaggerUpdate('Proyecto', UpdateProyectoDTO, ProyectoDTO) // Nombre de la tabla, bodyDTO, Retorno
+  @Roles(Role.CLIENTE) // Sólo para clientes
+  @Patch(':id')
+  update(
+    @Param('id', ObjectIdPipe) id: string,
+    @Body() dto: UpdateProyectoDTO,
+  ): Promise<boolean> {
+    return this.service.update(id, dto);
+  }
+
+  @SwaggerFindAll('Proyecto', ProyectoDTO) // Nombre de la tabla, Retorno
   @Get()
-  findAll(@Req() req) {
-    const user = req.user.id as string;
+  findAll(@CurrentUser() user: string): Promise<ProyectoDTO[]> {
     return this.service.findAll(user);
   }
 
-  @SwaggerFindOneProyecto()
-  @Roles(Role.EMPLEADO)
+  @SwaggerFindById('Proyecto', ProyectoDTO) // Nombre de la tabla, Retorno
   @Get(':id')
-  findOneEmpleado(@Param('id') id: string) {
-    return this.service.findOneEmpleado(id);
+  findById(@Param('id', ObjectIdPipe) id: string): Promise<ProyectoDTO> {
+    return this.service.findById(id);
   }
 
-  @SwaggerFindOneProyecto()
-  @Roles(Role.CLIENTE)
-  @Get(':id/cliente')
-  findOneCliente(@Req() req, @Param('id') id: string) {
-    const user = req.user.id as string;
-    return this.service.findOneByCliente(id, user);
-  }
-
-  @SwaggerFindByTipoProyecto()
-  @Roles(Role.CLIENTE)
+  @SwaggerFindAll('Proyecto', ProyectoDTO) // Nombre de la tabla, Retorno
   @Get('tipo-proyecto/:id')
-  findByTipoProyecto(@Param('id') id: string, @Req() req) {
-    const user = req.user.id as string;
+  findByTipoProyecto(
+    @Param('id', ObjectIdPipe) id: string,
+    @CurrentUser() user: string,
+  ): Promise<ProyectoDTO[]> {
     return this.service.findByTipoProyecto(id, user);
   }
 
-  @SwaggerUpdateProyecto()
-  @Roles(Role.CLIENTE)
-  @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateProyectoDto: UpdateProyectoDto,
-    @Req() req,
-  ) {
-    const userId = req.user.id as string;
-    return this.service.update(id, updateProyectoDto, userId);
-  }
-
-  @SwaggerDeleteProyecto()
-  @Roles(Role.CLIENTE)
+  @SwaggerCreate('Proyecto', CreateProyectoDTO, ProyectoDTO) // Nombre de la tabla, bodyDTO, Retorno
+  @Roles(Role.CLIENTE) // Sólo para clientes
   @Delete(':id')
-  delete(@Req() req, @Param('id') id: string) {
-    const userId = req.user.id as string;
-    return this.service.remove(id, userId);
+  delete(@Param('id', ObjectIdPipe) id: string): Promise<boolean> {
+    return this.service.delete(id);
   }
 }

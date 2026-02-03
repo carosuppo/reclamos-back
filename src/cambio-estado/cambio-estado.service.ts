@@ -1,68 +1,36 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { CreateCambioEstadoDto } from './dtos/create-cambio-estado.dto';
-import { toCambioEstadoCreateData } from './mappers/toCambioEstadoEntity';
-import { toCambioEstadoDto } from './mappers/toCambioEstadoDto';
-import { CambioEstadoDto } from './dtos/cambio-estado.dto';
-import { CambioEstadoValidator } from './validators/cambio-estado.validator';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Estados } from '@prisma/client';
+import { CambioEstadoDTO } from './dtos/cambio-estado.dto';
+import { CambioEstadoMapper as mapper } from './mappers/cambio-estado.mapper';
 import type { ICambioEstadoRepository } from './repositories/cambio-estado.repository.interface';
-import { toEstadoEnum } from './mappers/toEstadoEnum';
 
 @Injectable()
 export class CambioEstadoService {
   constructor(
     @Inject('ICambioEstadoRepository')
     private readonly repository: ICambioEstadoRepository,
-    private readonly validator: CambioEstadoValidator,
   ) {}
 
-  async setEstadoInicial(dto: CreateCambioEstadoDto): Promise<CambioEstadoDto> {
-    //2. crear cambio de estado
-    const data = toCambioEstadoCreateData(dto);
-    const cambioEstado = await this.repository.create(data);
-
-    if (!cambioEstado) {
-      throw new BadRequestException('Error al crear el cambio de estado.');
-    }
-
-    return toCambioEstadoDto(cambioEstado);
-  }
-
-  async setEstadoEnProceso(
-    dto: CreateCambioEstadoDto,
-  ): Promise<CambioEstadoDto> {
-    //2. crear cambio de estado
-    const data = toCambioEstadoCreateData(dto);
-    const cambioEstado = await this.repository.create(data);
-
-    if (!cambioEstado) {
-      throw new BadRequestException('Error al crear el cambio de estado.');
-    }
-
-    return toCambioEstadoDto(cambioEstado);
-  }
-
-  async setEstadoTerminado(
-    dto: CreateCambioEstadoDto,
-  ): Promise<CambioEstadoDto> {
-    //2. crear cambio de estado
-    const data = toCambioEstadoCreateData(dto);
-    const cambioEstado = await this.repository.create(data);
-
-    if (!cambioEstado) {
-      throw new BadRequestException('Error al crear el cambio de estado.');
-    }
-
-    return toCambioEstadoDto(cambioEstado);
-  }
-
-  async findByReclamo(id: string): Promise<CambioEstadoDto[]> {
+  async findByReclamo(id: string): Promise<CambioEstadoDTO[]> {
     const cambios = await this.repository.findByReclamoId(id);
-    return cambios.map(toCambioEstadoDto);
+
+    // Mapear array de cambios de estado al formato de transferencia de datos
+    return cambios.map((cambio) => mapper.toCambioEstadoDTO(cambio));
   }
 
-  async findByEstado(estado: string): Promise<CambioEstadoDto[]> {
-    estado = toEstadoEnum(estado);
+  async findByEstado(estado: Estados): Promise<CambioEstadoDTO[]> {
     const cambios = await this.repository.findByEstado(estado);
-    return cambios.map(toCambioEstadoDto);
+
+    // Mapear array de cambios de estado al formato de transferencia de datos
+    return cambios.map((cambio) => mapper.toCambioEstadoDTO(cambio));
+  }
+
+  async findLastCambioEstado(id: string) {
+    const cambioEstado = await this.repository.findLastCambioEstado(id);
+
+    if (!cambioEstado)
+      throw new NotFoundException('No se encontro el ultimo cambio de estado');
+
+    return mapper.toCambioEstadoDTO(cambioEstado);
   }
 }

@@ -1,16 +1,21 @@
 import {
-  TipoReclamoDescripcionField,
-  TipoReclamoIdField,
-  TipoReclamoNombreField,
-} from '../swaggers/tipo-reclamo.dto.swagger';
+  IsValidDescription,
+  IsValidId,
+  IsValidName,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class TipoReclamoDto {
-  @TipoReclamoIdField()
+export class TipoReclamoDTO {
+  @IsValidId('Tipo de reclamo') // Nombre de la tabla
   id!: string;
 
-  @TipoReclamoNombreField()
+  @IsValidName(40, 'Nombre del tipo de reclamo', 'Nombre del tipo de reclamo') // Máx carácteres, Ejemplo, Descripción
   nombre!: string;
 
-  @TipoReclamoDescripcionField()
+  @IsValidDescription(
+    100, // Máx carácteres
+    false, // Requerido o no
+    'Descripción', // Ejemplo
+    'Descripción del tipo de reclamo', // Descripción
+  )
   descripcion?: string;
 }

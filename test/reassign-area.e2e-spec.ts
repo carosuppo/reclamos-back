@@ -1,13 +1,13 @@
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, HttpStatus } from '@nestjs/common';
-import supertest, { Response } from 'supertest';
-import { AppModule } from 'src/app.module';
-import prisma from 'src/lib/db';
 import { Estados } from '@prisma/client';
-import { Role } from 'src/common/enums/role.enum';
-import { signEmpleadoToken } from './utils/jwt';
-import { Medidas } from 'src/common/enums/medidas.enum';
 import { Server } from 'http';
+import { AppModule } from 'src/app.module';
+import { Medidas } from 'src/common/enums/medidas.enum';
+import { Role } from 'src/common/enums/role.enum';
+import prisma from 'src/lib/db';
+import supertest from 'supertest';
+import { signEmpleadoToken } from './utils/jwt';
 
 describe('Reclamo – Reassign Area (E2E)', () => {
   let app: INestApplication;
@@ -30,6 +30,7 @@ describe('Reclamo – Reassign Area (E2E)', () => {
     server = app.getHttpServer() as Server;
 
     // Limpiar DB
+    /*
     await prisma.cambioEstado.deleteMany();
     await prisma.reclamo.deleteMany();
     await prisma.empleado.deleteMany();
@@ -37,6 +38,7 @@ describe('Reclamo – Reassign Area (E2E)', () => {
     await prisma.cliente.deleteMany();
     await prisma.proyecto.deleteMany();
     await prisma.tipoReclamo.deleteMany();
+    */
 
     // Áreas
     const areaOrigen = await prisma.area.create({
@@ -98,8 +100,8 @@ describe('Reclamo – Reassign Area (E2E)', () => {
         tipoReclamoId: tipoReclamo.id,
         proyectoId: proyecto.id,
         estado: Estados.PENDIENTE,
-        prioridad: Medidas.MEDIO,
-        criticidad: Medidas.MEDIO,
+        prioridad: Medidas.MEDIA,
+        criticidad: Medidas.MEDIA,
         descripcion: 'Reclamo test',
       },
     });

@@ -1,11 +1,13 @@
-import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { ClienteModule } from 'src/cliente/cliente.module';
-import { EmpleadoModule } from 'src/empleado/empleado.module';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { ClienteModule } from '../cliente/cliente.module';
+import { EmpleadoModule } from '../empleado/empleado.module';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { AuthHelper } from './helpers/auth.helper';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthValidator } from './validators/auth.validator';
 
 @Module({
   imports: [
@@ -15,14 +17,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
+        signOptions: { expiresIn: '2h' },
       }),
     }),
     ClienteModule,
-    EmpleadoModule,
+    forwardRef(() => EmpleadoModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, AuthValidator, AuthHelper],
+  exports: [AuthService, AuthValidator],
 })
 export class AuthModule {}

@@ -5,13 +5,13 @@ export function toMedidasEnum(estado: string): Medidas {
 
   switch (normalized) {
     case 'ALTA':
-      return Medidas.ALTO;
+      return Medidas.ALTA;
 
     case 'MEDIA':
-      return Medidas.MEDIO;
+      return Medidas.MEDIA;
 
     case 'BAJA':
-      return Medidas.BAJO;
+      return Medidas.BAJA;
 
     default:
       throw new Error(`Estado inválido: ${estado}`);

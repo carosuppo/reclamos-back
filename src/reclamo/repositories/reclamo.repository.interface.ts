@@ -1,26 +1,23 @@
-import { Reclamo } from '@prisma/client';
+import { Estados, Reclamo } from '@prisma/client';
+import { CambioEstadoCreateData } from '../../cambio-estado/interfaces/cambio-estado.interface';
 import {
   FiltrosReclamoData,
   ReclamoCreateData,
   ReclamoData,
-} from '../interfaces/reclamo-create.interface';
-import { CambioEstadoCreateData } from '../../cambio-estado/interfaces/cambio-estado-create.interface';
+} from '../interfaces/reclamo.interface';
 
 export interface IReclamoRepository {
-  create(
-    data: ReclamoCreateData,
-    userId: string,
-  ): Promise<Reclamo & { cambioEstadoId: string }>;
-  findByCliente(clienteId: string): Promise<Reclamo[]>;
-  findOne(id: string): Promise<Reclamo | null>;
+  create(data: ReclamoCreateData, userId: string): Promise<Reclamo>;
   update(data: ReclamoData): Promise<Reclamo>;
-  updateEstado(data: CambioEstadoCreateData): Promise<Reclamo>;
+  changeEstado(data: CambioEstadoCreateData): Promise<Reclamo>;
   reassignArea(data: CambioEstadoCreateData): Promise<Reclamo>;
+  findById(id: string): Promise<Reclamo | null>;
   findAll(): Promise<Reclamo[]>;
-  findByFiltros(filtros: FiltrosReclamoData): Promise<number>;
-  findDatesResueltos(
+  findByCliente(clienteId: string): Promise<Reclamo[]>;
+  findDates(
     areaId: string,
+    estado?: Estados,
   ): Promise<{ createdAt: Date; updatedAt: Date }[]>;
-  countTotalByArea(areaId: string): Promise<number>;
-  countResueltosByArea(areaId: string): Promise<number>;
+  countByArea(areaId: string, estado?: Estados): Promise<number>;
+  countByFiltros(filtros: FiltrosReclamoData): Promise<number>;
 }

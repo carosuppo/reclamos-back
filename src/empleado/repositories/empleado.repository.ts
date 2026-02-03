@@ -1,88 +1,58 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { IEmpleadoRepository } from './empleado.repository.interface';
-import prisma from '../../lib/db';
+import { Injectable } from '@nestjs/common';
 import { Empleado } from '@prisma/client';
-import { EmpleadoUpdateData } from '../interfaces/empleado-update.interface';
-import { EmpleadoCreateData } from '../interfaces/empleado-create.interface';
+import prisma from '../../lib/db';
+import {
+  EmpleadoCreateData,
+  EmpleadoUpdateData,
+} from '../interfaces/empleado.interface';
+import { IEmpleadoRepository } from './empleado.repository.interface';
 
 @Injectable()
 export class EmpleadoRepository implements IEmpleadoRepository {
   async create(data: EmpleadoCreateData): Promise<Empleado> {
-    try {
-      return await prisma.empleado.create({ data });
-    } catch (error) {
-      const prismaError = error as { code?: string };
-
-      if (prismaError.code === 'P2002') {
-        throw new Error(`Empleado duplicado: ${data.email}`);
-      }
-
-      if (error instanceof Error) {
-        throw new Error(`Error al crear el empleado: ${error.message}`);
-      }
-
-      throw new Error(`Error al crear el empleado: ${String(error)}`);
-    }
+    return await prisma.empleado.create({ data });
   }
 
-  async findAll(): Promise<Empleado[]> {
-    const empleados = await prisma.empleado.findMany();
-    return empleados.filter((empleado) => !empleado.deletedAt);
-  }
-
-  async findByEmail(email: string): Promise<Empleado | null> {
-    const empleado = await prisma.empleado.findFirst({
-      where: { email },
+  async update(data: EmpleadoUpdateData): Promise<Empleado> {
+    return prisma.empleado.update({
+      where: { id: data.id },
+      data: {
+        nombre: data?.nombre,
+        email: data?.email,
+        telefono: data?.telefono,
+      },
     });
+  }
 
-    if (!empleado || empleado.deletedAt) {
-      return null;
-    }
-
-    return empleado;
+  async assignArea(id: string, areaId: string): Promise<Empleado> {
+    return await prisma.empleado.update({
+      where: { id },
+      data: { areaId },
+    });
   }
 
   async findById(id: string): Promise<Empleado | null> {
-    const empleado = await prisma.empleado.findFirst({
-      where: { id },
-    });
-
-    if (!empleado || empleado.deletedAt) {
-      return null;
-    }
-
-    return empleado;
-  }
-
-  async update(id: string, data: EmpleadoUpdateData): Promise<Empleado> {
-    return prisma.empleado.update({
-      where: { id },
-      data,
-    });
-  }
-
-  async softDelete(id: string): Promise<void> {
-    const empleado = await prisma.empleado.findFirst({
-      where: { id },
-    });
-
-    if (!empleado || empleado.deletedAt) {
-      throw new NotFoundException(`El empleado con id "${id}" no existe`);
-    }
-
-    await prisma.empleado.update({
-      where: { id: empleado.id },
-      data: { deletedAt: new Date() },
-    });
-  }
-
-  async asignarArea(email: string, area: string): Promise<Empleado> {
-    return await prisma.empleado.update({
-      where: { email: email },
-      data: { areaId: area },
-      include: {
-        area: true,
+    return await prisma.empleado.findFirst({
+      where: {
+        id,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
       },
+    });
+  }
+
+  async findByEmail(email: string): Promise<Empleado | null> {
+    return await prisma.empleado.findFirst({
+      where: {
+        email,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.empleado.update({
+      where: { id },
+      data: { deletedAt: new Date() },
     });
   }
 }

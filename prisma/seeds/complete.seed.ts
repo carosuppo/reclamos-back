@@ -1,7 +1,7 @@
-import prisma from '../../src/lib/db';
-import * as bcrypt from 'bcrypt';
 import { Estados } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { Medidas } from 'src/common/enums/medidas.enum';
+import prisma from '../../src/lib/db';
 
 async function main() {
   console.log('🌱 Iniciando seed completo de la base de datos...\n');
@@ -306,8 +306,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
       proyectoId: proyectosCreados[0]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'Necesito modificar el formulario de reclamos para incluir un campo adicional de categoría.',
     },
@@ -315,8 +315,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
       proyectoId: proyectosCreados[0]?.id,
       estado: Estados.EN_PROCESO,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'Solicito agregar funcionalidad de notificaciones por email cuando se actualiza un reclamo.',
     },
@@ -324,8 +324,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
       proyectoId: proyectosCreados[1]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'El sistema de migración falla al transferir archivos mayores a 1GB.',
     },
@@ -333,16 +333,16 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
       proyectoId: proyectosCreados[2]?.id,
       estado: Estados.RESUELTO,
-      prioridad: Medidas.BAJO,
-      criticidad: Medidas.MEDIO,
+      prioridad: Medidas.BAJA,
+      criticidad: Medidas.MEDIA,
       descripcion: 'Cambiar el color del botón de pago en la aplicación móvil.',
     },
     {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
       proyectoId: proyectosCreados[2]?.id,
       estado: Estados.EN_PROCESO,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'La aplicación se cierra inesperadamente al procesar pagos con tarjeta de crédito.',
     },
@@ -350,8 +350,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
       proyectoId: proyectosCreados[3]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.MEDIO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.MEDIA,
       descripcion:
         'Agregar reporte de vulnerabilidades encontradas en formato PDF.',
     },
@@ -359,8 +359,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[3]?.id, // Otros
       proyectoId: proyectosCreados[4]?.id,
       estado: Estados.RESUELTO,
-      prioridad: Medidas.BAJO,
-      criticidad: Medidas.BAJO,
+      prioridad: Medidas.BAJA,
+      criticidad: Medidas.BAJA,
       descripcion:
         'Solicito información sobre los horarios de atención del soporte técnico.',
     },
@@ -368,8 +368,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
       proyectoId: proyectosCreados[5]?.id,
       estado: Estados.EN_PROCESO,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'Modificar el formato de las gráficas en el dashboard para mejorar la visualización.',
     },
@@ -377,8 +377,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
       proyectoId: proyectosCreados[6]?.id,
       estado: Estados.PENDIENTE,
-      prioridad: Medidas.ALTO,
-      criticidad: Medidas.ALTO,
+      prioridad: Medidas.ALTA,
+      criticidad: Medidas.ALTA,
       descripcion:
         'El algoritmo de IA no está aprendiendo correctamente de los datos de entrenamiento.',
     },
@@ -386,8 +386,8 @@ async function main() {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
       proyectoId: proyectosCreados[7]?.id,
       estado: Estados.RESUELTO,
-      prioridad: Medidas.MEDIO,
-      criticidad: Medidas.MEDIO,
+      prioridad: Medidas.MEDIA,
+      criticidad: Medidas.MEDIA,
       descripcion:
         'Agregar monitoreo en tiempo real del estado de los servidores.',
     },
@@ -414,17 +414,25 @@ async function main() {
     fechaFin?: Date | null;
   }> = [];
 
-  // Para cada reclamo, crear algunos cambios de estado
   for (let i = 0; i < reclamosCreados.length; i++) {
     const reclamo = reclamosCreados[i];
     const cliente = clientesCreados[i % clientesCreados.length];
     const empleado = empleadosCreados[i % empleadosCreados.length];
-    // Obtener el área del empleado o usar la primera área por defecto
+
     const area = empleado.areaId
       ? areasCreadas.find((a) => a.id === empleado.areaId) || areasCreadas[0]
       : areasCreadas[0];
 
-    // Cambio inicial (creado por cliente)
+    const baseDate =
+      Date.now() - (reclamosCreados.length - i) * 24 * 60 * 60 * 1000;
+
+    // 🟡 PENDIENTE (siempre existe y SIEMPRE se cierra si hay otro estado)
+    const pendienteInicio = new Date(baseDate);
+    const pendienteFin =
+      reclamo.estado === Estados.PENDIENTE
+        ? null
+        : new Date(pendienteInicio.getTime() + 4 * 60 * 60 * 1000);
+
     cambiosEstadoData.push({
       reclamoId: reclamo.id,
       clienteId: cliente.id,
@@ -432,16 +440,24 @@ async function main() {
       areaId: area.id,
       estado: Estados.PENDIENTE,
       descripcion: 'Reclamo creado por el cliente.',
-      fechaInicio: new Date(
-        Date.now() - (reclamosCreados.length - i) * 24 * 60 * 60 * 1000,
-      ), // Días atrás
+      fechaInicio: pendienteInicio,
+      fechaFin: pendienteFin,
     });
 
-    // Si el reclamo está en proceso o resuelto, agregar más cambios
+    // 🔵 EN_PROCESO
     if (
       reclamo.estado === Estados.EN_PROCESO ||
       reclamo.estado === Estados.RESUELTO
     ) {
+      const enProcesoInicio = new Date(
+        pendienteInicio.getTime() + 5 * 60 * 60 * 1000,
+      );
+
+      const enProcesoFin =
+        reclamo.estado === Estados.EN_PROCESO
+          ? null
+          : new Date(enProcesoInicio.getTime() + 6 * 60 * 60 * 1000);
+
       cambiosEstadoData.push({
         reclamoId: reclamo.id,
         clienteId: null,
@@ -449,20 +465,17 @@ async function main() {
         areaId: area.id,
         estado: Estados.EN_PROCESO,
         descripcion: 'Reclamo asignado a área y en proceso de resolución.',
-        fechaInicio: new Date(
-          Date.now() - (reclamosCreados.length - i) * 20 * 60 * 60 * 1000,
-        ),
-        fechaFin:
-          reclamo.estado === Estados.RESUELTO
-            ? new Date(
-                Date.now() - (reclamosCreados.length - i) * 12 * 60 * 60 * 1000,
-              )
-            : null,
+        fechaInicio: enProcesoInicio,
+        fechaFin: enProcesoFin,
       });
     }
 
-    // Si el reclamo está resuelto, agregar cambio final
+    // 🟢 RESUELTO (SIEMPRE es el último y NO tiene fechaFin)
     if (reclamo.estado === Estados.RESUELTO) {
+      const resueltoInicio = new Date(
+        pendienteInicio.getTime() + 12 * 60 * 60 * 1000,
+      );
+
       cambiosEstadoData.push({
         reclamoId: reclamo.id,
         clienteId: null,
@@ -470,12 +483,8 @@ async function main() {
         areaId: area.id,
         estado: Estados.RESUELTO,
         descripcion: 'Reclamo resuelto satisfactoriamente.',
-        fechaInicio: new Date(
-          Date.now() - (reclamosCreados.length - i) * 10 * 60 * 60 * 1000,
-        ),
-        fechaFin: new Date(
-          Date.now() - (reclamosCreados.length - i) * 2 * 60 * 60 * 1000,
-        ),
+        fechaInicio: resueltoInicio,
+        fechaFin: null,
       });
     }
   }
@@ -483,6 +492,7 @@ async function main() {
   const cambiosEstado = await prisma.cambioEstado.createMany({
     data: cambiosEstadoData,
   });
+
   console.log(`✅ Se crearon ${cambiosEstado.count} cambios de estado\n`);
 
   // Resumen final

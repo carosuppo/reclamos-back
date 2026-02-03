@@ -1,25 +1,38 @@
-import { Controller, Body, UseGuards, Put, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { Roles } from '../common/decorators/roles.decorator';
+import {
+  SwaggerFindById,
+  SwaggerUpdate,
+} from '../common/decorators/swaggers/controller.swagger';
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { Role } from '../common/enums/role.enum';
+import { JwtAuthGuard } from '../common/guards/jwt.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { ClienteService } from './cliente.service';
-import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { UpdateClienteDto } from './dtos/update.cliente.dto';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import type { AuthenticatedRequest } from 'src/common/types/authenticated-request';
-import { SwaggerUpdateCliente } from './swaggers/cliente.swagger';
+import { ClienteDTO } from './dtos/cliente.dto';
+import { UpdateClienteDTO } from './dtos/update.cliente.dto';
+import { MailPipe } from '../common/pipes/mail.pipe';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('CLIENTE')
+@UseGuards(JwtAuthGuard, RolesGuard) // Sólo para usuarios autenticados
+@ApiTags('Cliente')
 @Controller('cliente')
 export class ClienteController {
   constructor(private readonly clienteService: ClienteService) {}
 
-  @SwaggerUpdateCliente()
-  @Put('update')
+  @SwaggerUpdate('Cliente', UpdateClienteDTO) // Nombre del controlador, bodyDTO
+  @Roles(Role.CLIENTE) // Sólo para clientes
+  @Patch()
   updateProfile(
-    @Body() dto: UpdateClienteDto,
-    @Req() req: AuthenticatedRequest,
-  ) {
-    const userId = req.user.id;
-    return this.clienteService.update(userId, dto);
+    @Body() dto: UpdateClienteDTO,
+    @CurrentUser() user: string,
+  ): Promise<boolean> {
+    return this.clienteService.update(user, dto);
+  }
+
+  @SwaggerFindById('Cliente', ClienteDTO) // Nombre del controlador, Retorno
+  @Get('me/:mail')
+  me(@Param('mail', MailPipe) mail: string): Promise<ClienteDTO> {
+    return this.clienteService.findByEmail(mail);
   }
 }
