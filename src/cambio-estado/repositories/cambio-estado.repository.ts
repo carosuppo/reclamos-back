@@ -1,36 +1,57 @@
 import { Injectable } from '@nestjs/common';
-import { CambioEstado, Estados } from '@prisma/client';
+import { CambioEstado, Estados, Prisma } from '@prisma/client';
 import prisma from '../../lib/db';
-import { CambioEstadoCreateData } from '../interfaces/cambio-estado-create.interface';
+import { CambioEstadoConUsuario } from '../cambio-estado.type';
+import { CambioEstadoCreateData } from '../interfaces/cambio-estado.interface';
 import { ICambioEstadoRepository } from './cambio-estado.repository.interface';
 
 @Injectable()
 export class CambioEstadoRepository implements ICambioEstadoRepository {
-  async create(data: CambioEstadoCreateData): Promise<CambioEstado> {
-    try {
-      return await prisma.cambioEstado.create({ data });
-    } catch (error) {
-      throw new Error(`Error al crear el cambio de estado: ${String(error)}`);
-    }
+  async create(
+    data: CambioEstadoCreateData,
+    tx: Prisma.TransactionClient,
+  ): Promise<CambioEstado> {
+    return await tx.cambioEstado.create({ data });
   }
 
-  async close(reclamoId: string): Promise<void> {
+  async close(id: string, tx: Prisma.TransactionClient): Promise<void> {
+    // Insertar fechaFin en el cambio de estado activo del reclamo
+    await tx.cambioEstado.updateMany({
+      where: {
+        id,
+        OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+      },
+      data: { fechaFin: new Date() },
+    });
+  }
+
+  async findByReclamoId(reclamoId: string): Promise<CambioEstadoConUsuario[]> {
     try {
-      await prisma.cambioEstado.updateMany({
-        where: {
-          reclamoId: reclamoId,
-          OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+      return await prisma.cambioEstado.findMany({
+        where: { reclamoId },
+        include: {
+          empleado: {
+            select: {
+              id: true,
+              nombre: true,
+              email: true,
+            },
+          },
+          cliente: {
+            select: {
+              id: true,
+              nombre: true,
+              email: true,
+            },
+          },
+          area: {
+            select: {
+              id: true,
+              nombre: true,
+            },
+          },
         },
-        data: { fechaFin: new Date() },
       });
-    } catch (error) {
-      throw new Error(`Error al cerrar el cambio de estado: ${String(error)}`);
-    }
-  }
-
-  async findByReclamoId(reclamoId: string): Promise<CambioEstado[]> {
-    try {
-      return await prisma.cambioEstado.findMany({ where: { reclamoId } });
     } catch (error) {
       throw new Error(`
         Error al obtener los cambios de estado: ${String(error)}`);

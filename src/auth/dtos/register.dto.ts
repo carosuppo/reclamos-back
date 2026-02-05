@@ -1,20 +1,24 @@
 import {
-  ContraseñaField,
-  EmailField,
-  NombreField,
-  TelefonoField,
-} from '../swaggers/auth.dto.swagger';
+  IsValidEmail,
+  IsValidName,
+  IsValidPassword,
+  IsValidTelephone,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class RegisterDto {
-  @EmailField()
+export class RegisterDTO {
+  @IsValidEmail()
   email!: string;
 
-  @ContraseñaField()
+  @IsValidPassword(6, 18) // Mín carácteres, Max carácteres
   contraseña!: string;
 
-  @NombreField()
+  @IsValidName(
+    50, //Max carácteres
+    'Juan Pérez', // Ejemplo
+    'Nombre completo del usuario', // Descripción
+  )
   nombre!: string;
 
-  @TelefonoField()
+  @IsValidTelephone()
   telefono!: string;
 }

@@ -1,93 +1,109 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { RegisterDto } from 'src/auth/dtos/register.dto';
-import { toEmpleadoDto } from './mappers/toEmpleadoDto.mapper';
-import { EmpleadoDto } from './dtos/empleado.dto';
-import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
-import { toEmpleadoUpdateData } from './mappers/toEmpleadoParcial.mapper';
-import { AuthDto } from 'src/common/dtos/auth.dto';
-import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
-import { AsignarAreaDto } from './dtos/asignar.area.dto';
-import { AreaService } from 'src/area/area.service';
-import { Role } from 'src/common/enums/role.enum';
-import { toEmpleadoEntity } from './mappers/toEmpleadoEntity.mapper';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { AreaValidator } from '../area/validators/area.validator';
+import { RegisterDTO } from '../auth/dtos/register.dto';
+import { AuthValidator } from '../auth/validators/auth.validator';
+import { AuthDTO } from '../common/dtos/auth.dto';
+import { AsignarAreaDTO } from './dtos/asignar-area.dto';
+import { EmpleadoDTO } from './dtos/empleado.dto';
+import { UpdateEmpleadoDTO } from './dtos/update-empleado.dto';
+import { EmpleadoMapper as mapper } from './mappers/empleado.mapper';
 import type { IEmpleadoRepository } from './repositories/empleado.repository.interface';
+import { EmpleadoValidator } from './validators/empleado.validator';
 
 @Injectable()
 export class EmpleadoService {
   constructor(
     @Inject('IEmpleadoRepository')
-    private readonly empleadoRepository: IEmpleadoRepository,
-    private readonly areaService: AreaService,
+    private readonly repository: IEmpleadoRepository,
+    private readonly validator: EmpleadoValidator,
+    @Inject(forwardRef(() => AuthValidator))
+    private readonly authValidator: AuthValidator,
+    private readonly areaValidator: AreaValidator,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<EmpleadoDto> {
-    try {
-      const data = toEmpleadoEntity(registerDto);
-      const empleado = await this.empleadoRepository.create(data);
-      return toEmpleadoDto(empleado);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`Error al crear el empleado: ${error.message}`);
-      }
-      throw new Error('Error al crear el empleado: error desconocido');
-    }
+  async create(dto: RegisterDTO): Promise<EmpleadoDTO> {
+    // Mapea al formato esperado por el repositorio
+    const data = mapper.toEmpleadoEntity(dto);
+
+    const empleado = await this.repository.create(data);
+    // Mapea la respuesta a formato DTO
+    return mapper.toEmpleadoDTO(empleado);
   }
 
-  async update(id: string, dto: UpdateEmpleadoDto) {
-    const existing = await this.empleadoRepository.findById(id);
-    if (!existing) {
-      throw new BadRequestException('El usuario no existe.');
-    }
+  async update(id: string, dto: UpdateEmpleadoDTO): Promise<boolean> {
+    // Valida existencia del empleado
+    await this.validator.validate(id);
 
     if (dto.email) {
-      const emailInUse = await this.empleadoRepository.findByEmail(dto.email);
-      if (emailInUse && emailInUse.id !== id) {
-        throw new BadRequestException('El email ya está en uso.');
-      }
+      // Valida si no existe otro usuario con el mismo email
+      await this.authValidator.validateEmail(dto.email);
     }
 
-    const updatedData = toEmpleadoUpdateData(dto);
-    return this.empleadoRepository.update(id, updatedData);
+    // Mapea al formato esperado por el repositorio
+    const data = mapper.toEmpleadoUpdateData(id, dto);
+
+    await this.repository.update(data);
+    return true;
   }
 
-  async findOne(email: string): Promise<EmpleadoDto | null> {
-    const empleado = await this.empleadoRepository.findByEmail(email);
+  async assignArea(id: string, dto: AsignarAreaDTO): Promise<boolean> {
+    // Valida existencia del empleado
+    await this.validator.validate(id);
+
+    // Valida existencia del área
+    await this.areaValidator.validate(dto.areaId);
+
+    await this.repository.assignArea(id, dto.areaId);
+    return true;
+  }
+
+  async findByEmail(email: string): Promise<EmpleadoDTO> {
+    const empleado = await this.repository.findByEmail(email);
+
     if (!empleado) {
-      return null;
+      throw new NotFoundException('No se encontró el empleado.');
     }
-    return toEmpleadoDto(empleado);
+
+    // Mapea la respuesta a formato DTO
+    return mapper.toEmpleadoDTO(empleado);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} empleado`;
-  }
+  async findForAuth(email: string): Promise<AuthDTO | null> {
+    const empleado = await this.repository.findByEmail(email);
 
-  async findForAuth(email: string): Promise<AuthDto | null> {
-    const empleado = await this.empleadoRepository.findByEmail(email);
     if (empleado) {
-      return AuthMapper.toAuthDto(empleado, Role.EMPLEADO);
+      // Mapear la respuesta a formato DTO
+      return mapper.toAuthEmpleadoDTO(empleado);
     }
+
+    // Debe devolver null y no tirar error, porque sino el método del login no funcionaría correctamente
     return null;
   }
 
-  async asignarArea(email: string, dto: AsignarAreaDto): Promise<EmpleadoDto> {
-    const areaDto = await this.areaService.findOne(dto.area);
-    if (!areaDto) {
-      throw new BadRequestException('El area no existe.');
+  async findById(id: string): Promise<EmpleadoDTO> {
+    const empleado = await this.repository.findById(id);
+
+    if (!empleado) {
+      throw new NotFoundException('No se encontró el empleado.');
     }
 
-    const empleado = await this.empleadoRepository.asignarArea(
-      email,
-      areaDto.id,
-    );
-    return toEmpleadoDto(empleado);
+    // Mapea la respuesta a formato DTO
+    return mapper.toEmpleadoDTO(empleado);
   }
 
-  async findArea(id: string): Promise<string | null> {
-    const empleado = await this.empleadoRepository.findById(id);
+  async findAreaById(id: string): Promise<string> {
+    const empleado = await this.findById(id);
+
     if (!empleado) {
-      throw new BadRequestException('El empleado no existe.');
+      throw new NotFoundException('No se encontró el empleado.');
     }
-    return empleado.areaId;
+
+    // Mapea la respuesta a formato DTO
+    return empleado.area;
   }
 }

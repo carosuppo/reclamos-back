@@ -1,6 +1,6 @@
 import { Role } from '../enums/role.enum';
 
-export class AuthDto {
+export class AuthDTO {
   id: string;
   contraseña: string;
   email: string;

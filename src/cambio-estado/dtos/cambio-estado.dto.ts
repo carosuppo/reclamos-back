@@ -1,41 +1,41 @@
 import { Estados } from '@prisma/client';
 import {
-  CambioEstadoAreaIdField,
-  CambioEstadoClienteIdField,
-  CambioEstadoDescripcionField,
-  CambioEstadoEmpleadoIdField,
-  CambioEstadoEstadoField,
-  CambioEstadoFechaFinField,
-  CambioEstadoFechaInicioField,
-  CambioEstadoIdField,
-  CambioEstadoReclamoIdField,
-} from '../swaggers/cambio-estado.dto.swagger';
+  IsValidDate,
+  IsValidDescription,
+  IsValidEnum,
+  IsValidId,
+} from '../../common/decorators/swaggers/dto.swagger';
 
-export class CambioEstadoDto {
-  @CambioEstadoIdField()
+export class CambioEstadoDTO {
+  @IsValidId('Cambio estado') // Nombre de la tabla
   id: string;
 
-  @CambioEstadoReclamoIdField()
+  @IsValidId('Reclamo')
   reclamoId: string;
 
-  @CambioEstadoAreaIdField()
+  @IsValidId('Área')
   areaId: string;
 
-  @CambioEstadoFechaInicioField()
+  @IsValidDate()
   fechaInicio: Date;
 
-  @CambioEstadoFechaFinField()
+  @IsValidDate()
   fechaFin: Date | null;
 
-  @CambioEstadoDescripcionField(false)
+  @IsValidDescription(
+    100, // Máx caracteres
+    false, // Requerido o no
+    'Descripción', // Ejemplo
+    'Descripción del cambio de estado', // Descripción
+  )
   descripcion: string | null;
 
-  @CambioEstadoEstadoField()
+  @IsValidEnum('Estado', Estados) // Nombre del enum y posibles valores
   estado: Estados;
 
-  @CambioEstadoEmpleadoIdField()
+  @IsValidId('Empleado', false) // Nombre de la tabla y si es requerido o no
   empleadoId: string | null;
 
-  @CambioEstadoClienteIdField()
+  @IsValidId('Cliente', false)
   clienteId: string | null;
 }

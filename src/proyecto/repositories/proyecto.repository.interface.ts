@@ -1,16 +1,14 @@
-import { CreateProyectoDto } from '../dtos/create-proyecto.dto';
-import { UpdateProyectoDto } from '../dtos/update-proyecto.dto';
 import { Proyecto } from '@prisma/client';
+import {
+  ProyectoCreateData,
+  ProyectoUpdateData,
+} from '../interfaces/proyecto.interface';
 
 export interface IProyectoRepository {
+  create(data: ProyectoCreateData): Promise<Proyecto>;
+  update(data: ProyectoUpdateData): Promise<Proyecto>;
+  findById(id: string): Promise<Proyecto | null>;
   findAll(user: string): Promise<Proyecto[]>;
-  findOne(id: string): Promise<Proyecto | null>;
   findByTipoProyecto(tipoProyectoId: string, user: string): Promise<Proyecto[]>;
-  create(createProyectoDto: CreateProyectoDto): Promise<Proyecto>;
-  update(id: string, updateProyectoDto: UpdateProyectoDto): Promise<Proyecto>;
-  remove(id: string): Promise<boolean>;
-  findByIdAndCliente(
-    proyectoId: string,
-    clienteId: string,
-  ): Promise<Proyecto | null>;
+  delete(id: string): Promise<Proyecto>;
 }

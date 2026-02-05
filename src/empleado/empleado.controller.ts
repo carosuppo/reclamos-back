@@ -1,52 +1,50 @@
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { Roles } from '../common/decorators/roles.decorator';
 import {
-  Controller,
-  Body,
-  UseGuards,
-  Put,
-  Req,
-  Patch,
-  Param,
-  Get,
-} from '@nestjs/common';
+  SwaggerFindById,
+  SwaggerUpdate,
+} from '../common/decorators/swaggers/controller.swagger';
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { Role } from '../common/enums/role.enum';
+import { JwtAuthGuard } from '../common/guards/jwt.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { MailPipe } from '../common/pipes/mail.pipe';
+import { ObjectIdPipe } from '../common/pipes/object-id.pipe';
+import { AsignarAreaDTO } from './dtos/asignar-area.dto';
+import { EmpleadoDTO } from './dtos/empleado.dto';
+import { UpdateEmpleadoDTO } from './dtos/update-empleado.dto';
 import { EmpleadoService } from './empleado.service';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { UpdateEmpleadoDto } from './dtos/update.empleado.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { AuthenticatedRequest } from 'src/common/types/authenticated-request';
-import { AsignarAreaDto } from './dtos/asignar.area.dto';
-import {
-  SwaggerAsignarAreaEmpleado,
-  SwaggerUpdateEmpleadoProfile,
-} from './swaggers/empleado.swagger';
+import { SwaggerAssignArea } from './swaggers/empleado.swagger';
 
-@ApiTags('Empleado')
-@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('EMPLEADO')
+@Roles(Role.EMPLEADO) // Sólo para empleados
+@ApiTags('Empleado')
 @Controller('empleado')
 export class EmpleadoController {
-  constructor(private readonly empleadoService: EmpleadoService) {}
+  constructor(private readonly service: EmpleadoService) {}
 
-  @SwaggerUpdateEmpleadoProfile()
-  @Put('update')
+  @SwaggerUpdate('Empleado', UpdateEmpleadoDTO) // Nombre del endpoint, body
+  @Patch()
   updateProfile(
-    @Body() dto: UpdateEmpleadoDto,
-    @Req() req: AuthenticatedRequest,
-  ) {
-    const userId = req.user.id;
-    return this.empleadoService.update(userId, dto);
+    @Body() dto: UpdateEmpleadoDTO,
+    @CurrentUser() user: string,
+  ): Promise<boolean> {
+    return this.service.update(user, dto);
   }
 
-  @SwaggerAsignarAreaEmpleado()
-  @Patch(':email/area')
-  asignarArea(@Param('email') email: string, @Body() dto: AsignarAreaDto) {
-    return this.empleadoService.asignarArea(email, dto);
+  @SwaggerAssignArea()
+  @Patch(':id/area')
+  assignArea(
+    @Param('id', ObjectIdPipe) id: string,
+    @Body() dto: AsignarAreaDTO,
+  ): Promise<boolean> {
+    return this.service.assignArea(id, dto);
   }
 
+  @SwaggerFindById('Empleado', EmpleadoDTO) // Nombre del endpoint, body
   @Get('me/:mail')
-  me(@Param('mail') mail: string) {
-    return this.empleadoService.findOne(mail);
+  me(@Param('mail', MailPipe) mail: string): Promise<EmpleadoDTO> {
+    return this.service.findByEmail(mail);
   }
 }

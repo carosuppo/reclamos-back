@@ -1,51 +1,38 @@
 import { Estados } from '@prisma/client';
-import { Medidas } from 'src/common/enums/medidas.enum';
 import {
-  ReclamoAreaField,
-  ReclamoCriticidadField,
-  ReclamoDescripcionField,
-  ReclamoEstadoField,
-  ReclamoIdField,
-  ReclamoPrioridadField,
-  ReclamoProyectoField,
-  ReclamoTipoField,
-} from '../swaggers/reclamo.dto.swagger';
-import { ApiProperty } from '@nestjs/swagger';
+  IsValidDescription,
+  IsValidEnum,
+  IsValidId,
+} from '../../common/decorators/swaggers/dto.swagger';
+import { Medidas } from '../../common/enums/medidas.enum';
 
-export class ReclamoDto {
-  @ReclamoIdField()
+export class ReclamoDTO {
+  @IsValidId('Reclamo') // Nombre de la tabla
   id: string;
 
-  @ReclamoTipoField()
+  @IsValidId('Tipo de reclamo')
   tipoReclamo: string;
 
-  @ApiProperty({ description: 'Nombre del proyecto' })
-  proyectoNombre?: string;
-
-  @ApiProperty({ description: 'Nombre del cliente' })
-  clienteNombre?: string;
-
-  @ReclamoProyectoField()
+  @IsValidId('Proyecto')
   proyecto: string;
 
-  @ReclamoPrioridadField()
+  @IsValidEnum('Prioridad', Medidas) // Nombre del enum y posibles valores
   prioridad: Medidas;
 
-  @ReclamoCriticidadField()
+  @IsValidEnum('Criticidad', Medidas)
   criticidad: Medidas;
 
-  @ReclamoDescripcionField()
+  @IsValidDescription(
+    100, // Máx caracteres
+    true, // Requerido?
+    'Falla en el sistema', // Ejemplo
+    'Descripcion del reclamo', // Descripción
+  )
   descripcion: string;
 
-  @ReclamoEstadoField()
+  @IsValidEnum('Estado', Estados)
   estado: Estados;
 
-  @ReclamoAreaField()
+  @IsValidId('Área', false)
   areaId?: string;
-
-  @ApiProperty({ description: 'Fecha de creación' })
-  createdAt: Date;
-
-  @ApiProperty({ description: 'Ultima actualización' })
-  updatedAt: Date;
 }

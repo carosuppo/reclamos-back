@@ -1,24 +1,47 @@
-import prisma from 'src/lib/db';
 import { Proyecto } from '@prisma/client';
+import prisma from '../../lib/db';
+import {
+  ProyectoCreateData,
+  ProyectoUpdateData,
+} from '../interfaces/proyecto.interface';
 import { IProyectoRepository } from './proyecto.repository.interface';
-import { ProyectoInterfaz } from '../interfaces/proyecto.interfaz';
 
 export class ProyectoRepository implements IProyectoRepository {
-  async findAll(user: string): Promise<Proyecto[]> {
-    const proyecto = await prisma.proyecto.findMany({
-      where: { clienteId: user },
-    });
-    return proyecto.filter((proyecto) => !proyecto.deletedAt);
+  async create(data: ProyectoCreateData): Promise<Proyecto> {
+    return await prisma.proyecto.create({ data });
   }
 
-  async findOne(id: string): Promise<Proyecto | null> {
-    const proyecto = await prisma.proyecto.findFirst({
-      where: { id },
+  async update(data: ProyectoUpdateData): Promise<Proyecto> {
+    return await prisma.proyecto.update({
+      where: {
+        id: data.id,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+      data: {
+        nombre: data?.nombre,
+        descripcion: data?.descripcion,
+        tipoProyectoId: data?.tipoProyectoId,
+      },
     });
+  }
 
-    if (!proyecto || proyecto.deletedAt) {
-      return null;
-    }
+  async findAll(user: string): Promise<Proyecto[]> {
+    const proyectos = await prisma.proyecto.findMany({
+      where: {
+        clienteId: user,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
+    return proyectos;
+  }
+
+  async findById(id: string): Promise<Proyecto | null> {
+    const proyecto = await prisma.proyecto.findFirst({
+      where: {
+        id,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
 
     return proyecto;
   }
@@ -31,54 +54,18 @@ export class ProyectoRepository implements IProyectoRepository {
       where: {
         tipoProyectoId,
         clienteId: user,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
       },
     });
-    return proyectos.filter((proyecto) => !proyecto.deletedAt);
+    return proyectos;
   }
 
-  async create(proyectoInterfaz: ProyectoInterfaz): Promise<Proyecto> {
-    return await prisma.proyecto.create({ data: proyectoInterfaz });
-  }
-
-  async update(
-    id: string,
-    proyectoInterfaz: ProyectoInterfaz,
-  ): Promise<Proyecto> {
+  async delete(id: string): Promise<Proyecto> {
     return await prisma.proyecto.update({
-      where: {
-        id,
-      },
-      data: proyectoInterfaz,
-    });
-  }
-
-  async remove(id: string): Promise<boolean> {
-    await prisma.proyecto.update({
       where: { id },
       data: {
         deletedAt: new Date(),
       },
     });
-
-    return true;
-  }
-
-  async findByIdAndCliente(
-    proyectoId: string,
-    clienteId: string,
-  ): Promise<Proyecto | null> {
-    const proyecto = await prisma.proyecto.findFirst({
-      where: {
-        id: proyectoId,
-        clienteId: clienteId,
-        deletedAt: undefined,
-      },
-    });
-
-    if (!proyecto) {
-      return null;
-    }
-
-    return proyecto;
   }
 }

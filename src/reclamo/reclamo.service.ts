@@ -1,30 +1,19 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { CreateReclamoDto } from './dtos/create-reclamo.dto';
-import type { IReclamoRepository } from './repositories/reclamo.repository.interface';
-import { ReclamoDto } from './dtos/reclamo.dto';
-import {
-  toReclamoCreateData,
-  toReclamoUpdateData,
-} from './mappers/toReclamoEntity';
-import {
-  ReclamoWithRelations,
-  toReclamoDto,
-  toReclamoDtoExtended,
-} from './mappers/toReclamoDto';
-import { ReclamoValidator } from './validators/reclamo.validator';
-import { UpdateEstadoDto } from './dtos/update-estado.dto';
-import { ReasignarAreaDto } from './dtos/reasignar-area.dto';
-import { ReclamoHelper } from './helpers/reclamo.helper';
-import {
-  toCambioEstadoClienteData,
-  toCambioEstadoData,
-} from '../cambio-estado/mappers/toCambioEstadoEntity';
-import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
-import { EmpleadoService } from 'src/empleado/empleado.service';
-import { AreaValidator } from './validators/area.validator';
-import { FindReclamoDto } from './dtos/find-reclamo.dto';
-import { toFiltrosReclamoData } from './mappers/toFiltrosEntity';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Estados } from '@prisma/client';
+import { CambioEstadoService } from '../cambio-estado/cambio-estado.service';
+import { CambioEstadoMapper } from '../cambio-estado/mappers/cambio-estado.mapper';
+import { EmpleadoService } from '../empleado/empleado.service';
+import { CreateReclamoDTO } from './dtos/create-reclamo.dto';
+import { FiltersDTO } from './dtos/filters.dto';
+import { ReasignarAreaDTO } from './dtos/reasignar-area.dto';
+import { ReclamoCompletoDTO } from './dtos/reclamo-completo.dto';
+import { ReclamoDTO } from './dtos/reclamo.dto';
+import { UpdateEstadoDTO } from './dtos/update-estado.dto';
+import { UpdateReclamoDTO } from './dtos/update-reclamo.dto';
+import { ReclamoHelper } from './helpers/reclamo.helper';
+import { ReclamoMapper as mapper } from './mappers/reclamo.mapper';
+import type { IReclamoRepository } from './repositories/reclamo.repository.interface';
+import { ReclamoValidator } from './validators/reclamo.validator';
 
 @Injectable()
 export class ReclamoService {
@@ -32,145 +21,184 @@ export class ReclamoService {
     @Inject('IReclamoRepository')
     private readonly repository: IReclamoRepository,
     private readonly validator: ReclamoValidator,
-    private readonly areaValidator: AreaValidator,
     private readonly helper: ReclamoHelper,
+
     private readonly empleadoService: EmpleadoService,
+    private readonly cambioEstadoService: CambioEstadoService,
   ) {}
 
-  async create(dto: CreateReclamoDto, userId: string): Promise<ReclamoDto> {
-    // 1. validar tipo de reclamo
-    await this.validator.validateTipoReclamo(dto.tipoReclamoId);
+  async create(dto: CreateReclamoDTO, userId: string): Promise<ReclamoDTO> {
+    // CREA UN RECLAMO, JUNTO CON SU CAMBIO DE ESTADO INICIAL (PENDIENTE)
 
-    // 2. validar proyecto
-    await this.validator.validateProyecto(dto.proyectoId);
-
-    // 3. crear el reclamo base
-    const data = toReclamoCreateData(dto, userId);
-    const reclamo = await this.repository.create(data, userId);
-    return toReclamoDto(reclamo);
-  }
-
-  async findByCliente(clienteId: string): Promise<ReclamoDto[]> {
-    const reclamos = await this.repository.findByCliente(clienteId);
-    return reclamos.map(toReclamoDtoExtended);
-  }
-
-  async update(id: string, dto: UpdateReclamoDto, userId: string) {
-    //validar existencia del reclamo
-    const reclamo = await this.helper.findOne(id);
-    const cambioEstado = await this.helper.findLastCambioEstado(id);
-
-    const data = toReclamoUpdateData(id, dto, userId, reclamo, cambioEstado);
-    const updated = await this.repository.update(data);
-
-    return toReclamoDto(updated);
-  }
-
-  async updateEstado(id: string, dto: UpdateEstadoDto, userId: string) {
-    //validar existencia del reclamo
-    await this.validator.validateReclamo(id);
-
-    // traer el cambio de estado actual del reclamo
-    const ultimoCambioEstado = await this.helper.findLastCambioEstado(id);
-
-    // validar los cambio de estados posibles
-    this.validator.validateCambioEstadoEmpleado(
-      ultimoCambioEstado.estado,
-      dto.estado,
+    // Valida existencia del tipo de reclamo, proyecto y área
+    await this.validator.validateCreate(
+      dto.tipoReclamoId,
+      dto.proyectoId,
+      dto.areaId,
     );
 
-    // validar el area
-    await this.areaValidator.validateArea(ultimoCambioEstado.areaId, userId);
+    // Mapea al formato esperado por el repositorio
+    const data = mapper.toReclamoCreateData(dto, userId);
 
-    const dataCambioEstado = toCambioEstadoData(
+    // Crea el reclamo con su primer cambio de estado
+    const reclamo = await this.repository.create(data, userId);
+    return mapper.toReclamoDTO(reclamo);
+  }
+
+  async update(
+    id: string,
+    dto: UpdateReclamoDTO,
+    userId: string,
+  ): Promise<ReclamoDTO> {
+    // ACTUALIZA LOS DATOS DEL RECLAMO, DEVOLVIENDO SU ESTADO A PENDIENTE
+
+    // Trae el reclamo con su ultimo cambio de estado
+    const reclamo = await this.findById(id);
+    const cambioEstado =
+      await this.cambioEstadoService.findLastCambioEstado(id);
+
+    // Mapea la información del DTO y la pasa a formato válido para su método (Actualizar reclamo)
+    const data = mapper.toReclamoUpdateData(
       id,
-      ultimoCambioEstado,
+      dto,
+      userId,
+      reclamo,
+      cambioEstado,
+    );
+
+    const updated = await this.repository.update(data);
+
+    // Mapea la información traída de la BD a DTO
+    return mapper.toReclamoDTO(updated);
+  }
+
+  async changeEstado(
+    id: string,
+    dto: UpdateEstadoDTO,
+    userId: string,
+  ): Promise<ReclamoDTO> {
+    // CAMBIA EL ESTADO DEL RECLAMO, GUARDANDO EL USUARIO QUE HIZO EL CAMBIO
+
+    // Valida existencia del reclamo
+    await this.validator.validateReclamo(id);
+
+    // Trae el cambio de estado actual del reclamo (Cambio estado ctual)
+    const estadoActual =
+      await this.cambioEstadoService.findLastCambioEstado(id);
+
+    // Valida los cambio de estados posibles
+    this.validator.validateCambioEstado(estadoActual.estado, dto.estado);
+
+    // Mapea la información del DTO y la pasa a formato válido para su método (Actualizar estado)
+    const dataCambioEstado = CambioEstadoMapper.toCambioEstadoData(
+      estadoActual,
       dto,
       userId,
     );
 
-    const updated = await this.repository.updateEstado(dataCambioEstado);
+    const updated = await this.repository.changeEstado(dataCambioEstado);
 
-    return toReclamoDtoExtended(updated as ReclamoWithRelations);
+    // Mapea la información traída de la BD a DTO
+    return mapper.toReclamoDTO(updated);
   }
 
-  async reassignArea(id: string, dto: ReasignarAreaDto, userId: string) {
-    //validar existencia del reclamo
-    await this.validator.validateReclamo(id);
+  async reassignArea(
+    id: string,
+    dto: ReasignarAreaDTO,
+    userId: string,
+  ): Promise<ReclamoDTO> {
+    // REASIGNA EL ÁREA DEL RECLAMO, VOLVIENDO SU ESTADO A PENDIENTE
 
-    await this.validator.validateArea(dto.areaId);
+    // Valida todo lo necesario para cumplir con el método
+    await this.validator.validateReassignArea(id, dto.areaId);
 
-    // traer el cambio de estado actual del reclamo
-    const cambioEstado = await this.helper.findLastCambioEstado(id);
+    // Trae el estado actual del reclamo
+    const cambioEstado =
+      await this.cambioEstadoService.findLastCambioEstado(id);
 
-    // validar el area
-    await this.areaValidator.validateArea(cambioEstado.areaId, userId);
+    // Valida que se cumpla la regla de negocio sobre cambios de estado
+    this.validator.validateCambioEstado(cambioEstado.estado);
 
-    // validar que el estado actual no sea Resuelto
-    this.validator.validateCambioEstadoCliente(cambioEstado.estado);
-
-    const dataCambioEstado = toCambioEstadoClienteData(
+    // Mapea la información del DTO y la pasa a formato válido para su método (Reasignar área)
+    const data = CambioEstadoMapper.toCambioEstadoClienteData(
       cambioEstado,
       dto,
       userId,
     );
 
-    const updated = await this.repository.reassignArea(dataCambioEstado);
+    const reclamo = await this.repository.reassignArea(data);
 
-    return toReclamoDtoExtended(updated as ReclamoWithRelations);
+    // Mapea la información traída de la BD a DTO
+    return mapper.toReclamoDTO(reclamo);
   }
 
-  async findByArea(userId: string): Promise<ReclamoDto[]> {
-    // buscamos areaId del empleado
-    const areaId = await this.empleadoService.findArea(userId);
-    if (!areaId) {
-      throw new BadRequestException('El empleado no tiene un area asignada.');
-    }
-
-    // traemos todos los reclamos
-    const reclamos = await this.repository.findAll();
-
-    // filtramos por último cambio de estado
-    const reclamosFiltrados: ReclamoDto[] = [];
-
-    for (const reclamo of reclamos) {
-      const ultimoCambio = await this.helper.findLastCambioEstado(reclamo.id);
-
-      if (
-        ultimoCambio?.areaId === areaId &&
-        ultimoCambio.estado !== Estados.RESUELTO
-      ) {
-        reclamosFiltrados.push(
-          toReclamoDtoExtended(reclamo as ReclamoWithRelations),
-        );
-      }
-    }
-
-    return reclamosFiltrados;
-  }
-
-  async findByFiltros(dto: FindReclamoDto): Promise<number> {
-    const dataFindReclamo = toFiltrosReclamoData(dto);
-    return await this.repository.findByFiltros(dataFindReclamo);
-  }
-
-  async getTiempoPromedioResolucion(areaId: string): Promise<number> {
-    await this.validator.validateArea(areaId);
-    const rangos = await this.repository.findDatesResueltos(areaId);
-    const tiempoPromedio = this.helper.calcularTiempoResolucion(rangos);
-    return tiempoPromedio;
-  }
-
-  async getCantidadPromedioResolucion(areaId: string): Promise<number> {
-    await this.validator.validateArea(areaId);
-    const total = await this.repository.countTotalByArea(areaId);
-    const resueltos = await this.repository.countResueltosByArea(areaId);
-
-    return this.helper.calcularCantidadPromedio(resueltos, total);
-  }
-
-  async findById(id: string): Promise<ReclamoDto> {
+  async findById(id: string): Promise<ReclamoCompletoDTO> {
+    // Trae el reclamo según el ID
     const reclamo = await this.repository.findById(id);
-    return toReclamoDtoExtended(reclamo as ReclamoWithRelations);
+    if (!reclamo) throw new NotFoundException('Reclamo no encontrado');
+
+    // Mapea la información traída de la BD a DTO
+    return mapper.toReclamoCompletoDTO(reclamo);
+  }
+
+  async findByCliente(clienteId: string): Promise<ReclamoCompletoDTO[]> {
+    // TRAE LOS RECLAMOS ASOCIADOS AL CLIENTE
+
+    const reclamos = await this.repository.findByCliente(clienteId);
+
+    // Mapea la información traída de la BD a array DTO
+    return reclamos.map((reclamo) => mapper.toReclamoCompletoDTO(reclamo));
+  }
+
+  async findByArea(userId: string): Promise<ReclamoCompletoDTO[]> {
+    // TRAE LOS RECLAMOS ASOCIADOS AL ÁREA DEL EMPLEADO
+
+    // Trae el id del área del empleado
+    const areaId = await this.empleadoService.findAreaById(userId);
+
+    // Trae todos los reclamos del área
+    const reclamos = await this.repository.findByArea(areaId);
+
+    // Mapea la información traída de la BD a array DTO
+    return reclamos.map((reclamo) => mapper.toReclamoCompletoDTO(reclamo));
+  }
+
+  async countByFiltros(dto: FiltersDTO): Promise<number> {
+    // RETORNA EL NÚMERO DE TODOS LOS RECLAMOS QUE CUMPLAN CON LOS FILTROS
+
+    const data = mapper.toFiltrosReclamoData(dto);
+    return await this.repository.countByFiltros(data);
+  }
+
+  async getTiemProm(areaId: string): Promise<number> {
+    // RETORNA EL TIEMPO PROMEDIO DE RESOLUCIÓN DE LOS RECLAMOS RESUELTOS
+
+    // Valida existencia del área
+    await this.validator.validateArea(areaId);
+
+    // Trae el rango de fechas de todos los reclamos RESUELTOS
+    const rangos = await this.repository.findDates(areaId, Estados.RESUELTO);
+
+    // Calcula el promedio de resolución
+    return this.helper.calcularTiempoResolucion(rangos);
+  }
+
+  async getCantProm(areaId: string): Promise<number> {
+    // RETORNA EL PROMEDIO DE LOS RECLAMOS RESUELTOS SOBRE LA CANTIDAD TOTAL DE RECLAMOS
+
+    // Valida existencia del área
+    await this.validator.validateArea(areaId);
+
+    // Trae el número de reclamos total
+    const total = await this.repository.countByArea(areaId);
+
+    // Trae el número de los reclamos RESUELTOS
+    const resueltos = await this.repository.countByArea(
+      areaId,
+      Estados.RESUELTO,
+    );
+
+    // Calcula el promedio de resolución
+    return this.helper.calcularCantidadPromedio(resueltos, total);
   }
 }

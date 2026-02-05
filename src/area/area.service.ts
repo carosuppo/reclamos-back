@@ -1,9 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { CreateAreaDto } from './dtos/create-area.dto';
-import { UpdateAreaDto } from './dtos/update-area.dto';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { AreaDTO } from './dtos/area.dto';
+import { CreateAreaDTO, UpdateAreaDTO } from './dtos/create-area.dto';
+import { AreaMapper as mapper } from './mappers/area.mapper';
 import type { IAreaRepository } from './repositories/area.repository.interface';
-import { AreaDto } from './dtos/area.dto';
-import { toAreaDto } from './mappers/area.mapper';
 
 @Injectable()
 export class AreaService {
@@ -12,35 +11,47 @@ export class AreaService {
     private readonly repository: IAreaRepository,
   ) {}
 
-  async create(createAreaDto: CreateAreaDto): Promise<AreaDto | null> {
-    const area = await this.repository.create(createAreaDto);
-    return toAreaDto(area);
+  async create(dto: CreateAreaDTO): Promise<boolean> {
+    // Mapear al formato esperado por el repositorio
+    const data = mapper.toAreaCreateData(dto);
+
+    await this.repository.create(data);
+    return true;
   }
 
-  async findAll(): Promise<(AreaDto | null)[]> {
+  async update(id: string, dto: UpdateAreaDTO): Promise<boolean> {
+    // Mapear al formato esperado por el repositorio
+    const data = mapper.toAreaUpdateData(id, dto);
+
+    await this.repository.update(data);
+    return true;
+  }
+
+  async findAll(): Promise<AreaDTO[]> {
     const areas = await this.repository.findAll();
-    return areas.map((area) => toAreaDto(area));
+
+    // Mapear el array de areas al formato de transferencia de datos
+    return areas.map((area) => mapper.toAreaDto(area));
   }
 
-  async findOne(id: string): Promise<AreaDto | null> {
+  async findById(id: string): Promise<AreaDTO> {
     const area = await this.repository.findById(id);
-    return toAreaDto(area);
+    if (!area) throw new NotFoundException('No existe un área con ese nombre.');
+
+    // Mapear al formato de transferencia de datos
+    return mapper.toAreaDto(area);
   }
 
-  async update(
-    id: string,
-    updateAreaDto: UpdateAreaDto,
-  ): Promise<AreaDto | null> {
-    const area = await this.repository.update(id, updateAreaDto);
-    return toAreaDto(area);
-  }
-
-  async softDelete(id: string) {
-    return this.repository.softDelete(id);
-  }
-
-  async findByName(nombre: string): Promise<AreaDto | null> {
+  async findByNombre(nombre: string): Promise<AreaDTO> {
     const area = await this.repository.findByName(nombre);
-    return toAreaDto(area);
+    if (!area) throw new NotFoundException('No existe un área con ese nombre.');
+
+    // Mapear al formato de transferencia de datos
+    return mapper.toAreaDto(area);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    await this.repository.delete(id);
+    return true;
   }
 }

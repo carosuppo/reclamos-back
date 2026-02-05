@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { IClienteRepository } from './cliente.repository.interface';
-import prisma from '../../lib/db';
+import { Injectable } from '@nestjs/common';
 import { Cliente } from '@prisma/client';
-import { ClienteUpdateData } from '../interfaces/cliente-update.interface';
-import { ClienteCreateData } from '../interfaces/cliente-create.interface';
+import prisma from '../../lib/db';
+import {
+  ClienteCreateData,
+  ClienteUpdateData,
+} from '../interfaces/cliente.interface';
+import { IClienteRepository } from './cliente.repository.interface';
 
 @Injectable()
 export class ClienteRepository implements IClienteRepository {
@@ -27,53 +29,46 @@ export class ClienteRepository implements IClienteRepository {
     }
   }
 
+  async update(data: ClienteUpdateData): Promise<Cliente> {
+    return await prisma.cliente.update({
+      where: { id: data.id },
+      data: {
+        nombre: data?.nombre,
+        telefono: data?.telefono,
+        email: data?.email,
+      },
+    });
+  }
+
   async findAll(): Promise<Cliente[]> {
-    const clientes = await prisma.cliente.findMany();
-    return clientes.filter((cliente) => !cliente.deletedAt);
+    return await prisma.cliente.findMany({
+      where: {
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+    });
   }
 
   async findByEmail(email: string): Promise<Cliente | null> {
-    const cliente = await prisma.cliente.findFirst({
-      where: { email },
+    return await prisma.cliente.findFirst({
+      where: {
+        email,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
     });
-
-    if (!cliente || cliente.deletedAt) {
-      return null;
-    }
-
-    return cliente;
   }
 
   async findById(id: string): Promise<Cliente | null> {
-    const cliente = await prisma.cliente.findFirst({
-      where: { id },
-    });
-
-    if (!cliente || cliente.deletedAt) {
-      return null;
-    }
-
-    return cliente;
-  }
-
-  async update(id: string, data: ClienteUpdateData): Promise<Cliente> {
-    return await prisma.cliente.update({
-      where: { id },
-      data,
+    return await prisma.cliente.findFirst({
+      where: {
+        id,
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
     });
   }
 
-  async softDelete(id: string): Promise<void> {
-    const cliente = await prisma.cliente.findFirst({
-      where: { id },
-    });
-
-    if (!cliente || cliente.deletedAt) {
-      throw new NotFoundException(`El cliente con id "${id}" no existe`);
-    }
-
+  async delete(id: string): Promise<void> {
     await prisma.empleado.update({
-      where: { id: cliente.id },
+      where: { id },
       data: { deletedAt: new Date() },
     });
   }
