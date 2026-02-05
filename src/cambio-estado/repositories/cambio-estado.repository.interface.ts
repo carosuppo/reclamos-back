@@ -1,4 +1,5 @@
 import { CambioEstado, Prisma } from '@prisma/client';
+import { CambioEstadoConUsuario } from '../cambio-estado.type';
 import { CambioEstadoCreateData } from '../interfaces/cambio-estado.interface';
 
 export interface ICambioEstadoRepository {
@@ -10,7 +11,7 @@ export interface ICambioEstadoRepository {
     reclamoId: string,
     prismaClient?: Prisma.TransactionClient,
   ): Promise<void>;
-  findByReclamoId(reclamoId: string): Promise<CambioEstado[]>;
+  findByReclamoId(reclamoId: string): Promise<CambioEstadoConUsuario[]>;
   findByEstado(estado: string): Promise<CambioEstado[]>;
   findLastCambioEstado(id: string): Promise<CambioEstado | null>;
 }

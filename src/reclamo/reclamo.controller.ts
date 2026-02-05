@@ -14,6 +14,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import {
   SwaggerCreate,
   SwaggerFindAll,
+  SwaggerFindById,
   SwaggerUpdate,
 } from '../common/decorators/swaggers/controller.swagger';
 import { CurrentUser } from '../common/decorators/user.decorator';
@@ -24,6 +25,7 @@ import { ObjectIdPipe } from '../common/pipes/object-id.pipe';
 import { CreateReclamoDTO } from './dtos/create-reclamo.dto';
 import { FiltersDTO } from './dtos/filters.dto';
 import { ReasignarAreaDTO } from './dtos/reasignar-area.dto';
+import { ReclamoCompletoDTO } from './dtos/reclamo-completo.dto';
 import { ReclamoDTO } from './dtos/reclamo.dto';
 import { UpdateEstadoDTO } from './dtos/update-estado.dto';
 import { UpdateReclamoDTO } from './dtos/update-reclamo.dto';
@@ -79,17 +81,24 @@ export class ReclamoController {
     return this.service.reassignArea(id, dto, userId);
   }
 
-  @SwaggerFindAll('Reclamos de cliente', ReclamoDTO)
-  @Roles(Role.CLIENTE) // Ingreso permitido sólo para clientes
+  @SwaggerFindAll('Reclamos de cliente', ReclamoCompletoDTO)
+  @Roles(Role.CLIENTE)
   @Get()
-  findByCliente(@CurrentUser() userId: string): Promise<ReclamoDTO[]> {
+  findByCliente(@CurrentUser() userId: string): Promise<ReclamoCompletoDTO[]> {
     return this.service.findByCliente(userId);
   }
 
-  @SwaggerFindAll('Reclamos de un área', ReclamoDTO)
-  @Roles(Role.EMPLEADO) // Ingreso permitido sólo para empleados
+  @SwaggerFindById('Reclamo', ReclamoCompletoDTO)
+  @Roles(Role.CLIENTE) // Ingreso permitido sólo para empleados
+  @Get('/:id')
+  findById(@Param('id', ObjectIdPipe) id: string): Promise<ReclamoCompletoDTO> {
+    return this.service.findById(id);
+  }
+
+  @SwaggerFindAll('Reclamos de un área', ReclamoCompletoDTO)
+  @Roles(Role.EMPLEADO)
   @Get('area')
-  findByArea(@CurrentUser() userId: string): Promise<ReclamoDTO[]> {
+  findByArea(@CurrentUser() userId: string): Promise<ReclamoCompletoDTO[]> {
     return this.service.findByArea(userId);
   }
 

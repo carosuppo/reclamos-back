@@ -8,6 +8,7 @@ import {
   ReclamoCreateData,
   ReclamoData,
 } from '../interfaces/reclamo.interface';
+import { ReclamoCompleto } from '../reclamo.type';
 import type { IReclamoRepository } from './reclamo.repository.interface';
 
 @Injectable()
@@ -189,7 +190,7 @@ export class ReclamoRepository implements IReclamoRepository {
     }
   }
 
-  findByCliente(clienteId: string): Promise<Reclamo[]> {
+  findByCliente(clienteId: string): Promise<ReclamoCompleto[]> {
     // Selecciona los reclamos asociados al cliente
     return prisma.reclamo.findMany({
       where: {
@@ -200,13 +201,65 @@ export class ReclamoRepository implements IReclamoRepository {
         OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
       },
       include: {
-        tipoReclamo: true,
-        proyecto: true,
+        tipoReclamo: {
+          select: {
+            id: true,
+            nombre: true,
+          },
+        },
+        proyecto: {
+          select: {
+            id: true,
+            nombre: true,
+            cliente: {
+              select: {
+                id: true,
+                nombre: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async findById(id: string): Promise<Reclamo | null> {
+  async findByArea(areaId: string): Promise<ReclamoCompleto[]> {
+    // Selecciona los reclamos asociados al área
+    return prisma.reclamo.findMany({
+      where: {
+        cambioEstado: {
+          some: {
+            areaId,
+            OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
+          },
+        },
+        // No selecciona los reclamos eliminados
+        OR: [{ deletedAt: null }, { deletedAt: { not: { isSet: true } } }],
+      },
+      include: {
+        tipoReclamo: {
+          select: {
+            id: true,
+            nombre: true,
+          },
+        },
+        proyecto: {
+          select: {
+            id: true,
+            nombre: true,
+            cliente: {
+              select: {
+                id: true,
+                nombre: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findById(id: string): Promise<ReclamoCompleto | null> {
     // Selecciona el reclamo con el id proporcionado, incluyendo el historial de estados
     return await prisma.reclamo.findFirst({
       where: {
@@ -216,6 +269,24 @@ export class ReclamoRepository implements IReclamoRepository {
       // Incluye todos el historial de estados de ese reclamo
       include: {
         cambioEstado: true,
+        tipoReclamo: {
+          select: {
+            id: true,
+            nombre: true,
+          },
+        },
+        proyecto: {
+          select: {
+            id: true,
+            nombre: true,
+            cliente: {
+              select: {
+                id: true,
+                nombre: true,
+              },
+            },
+          },
+        },
       },
     });
   }

@@ -9,6 +9,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { ObjectIdPipe } from '../common/pipes/object-id.pipe';
 import { TransformEstadoPipe } from '../common/pipes/transform-estado.pipe';
 import { CambioEstadoService } from './cambio-estado.service';
+import { CambioEstadoConUsuarioDTO } from './dtos/cambio-estado-con-usuario.dto';
 import { CambioEstadoDTO } from './dtos/cambio-estado.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard) // Sólo pueden ingresar los usuarios autenticados
@@ -17,11 +18,11 @@ import { CambioEstadoDTO } from './dtos/cambio-estado.dto';
 export class CambioEstadoController {
   constructor(private readonly service: CambioEstadoService) {}
 
-  @SwaggerFindAll('Cambio de estado de un reclamo', CambioEstadoDTO) // Nombre del endpoint y DTO de respuesta
+  @SwaggerFindAll('Cambio de estado de un reclamo', CambioEstadoConUsuarioDTO) // Nombre del endpoint y DTO de respuesta
   @Get(':id')
   findByReclamo(
     @Param('id', ObjectIdPipe) id: string,
-  ): Promise<CambioEstadoDTO[]> {
+  ): Promise<CambioEstadoConUsuarioDTO[]> {
     return this.service.findByReclamo(id);
   }
 

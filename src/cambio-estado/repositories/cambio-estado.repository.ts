@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CambioEstado, Estados, Prisma } from '@prisma/client';
 import prisma from '../../lib/db';
+import { CambioEstadoConUsuario } from '../cambio-estado.type';
 import { CambioEstadoCreateData } from '../interfaces/cambio-estado.interface';
 import { ICambioEstadoRepository } from './cambio-estado.repository.interface';
 
@@ -24,9 +25,33 @@ export class CambioEstadoRepository implements ICambioEstadoRepository {
     });
   }
 
-  async findByReclamoId(reclamoId: string): Promise<CambioEstado[]> {
+  async findByReclamoId(reclamoId: string): Promise<CambioEstadoConUsuario[]> {
     try {
-      return await prisma.cambioEstado.findMany({ where: { reclamoId } });
+      return await prisma.cambioEstado.findMany({
+        where: { reclamoId },
+        include: {
+          empleado: {
+            select: {
+              id: true,
+              nombre: true,
+              email: true,
+            },
+          },
+          cliente: {
+            select: {
+              id: true,
+              nombre: true,
+              email: true,
+            },
+          },
+          area: {
+            select: {
+              id: true,
+              nombre: true,
+            },
+          },
+        },
+      });
     } catch (error) {
       throw new Error(`
         Error al obtener los cambios de estado: ${String(error)}`);

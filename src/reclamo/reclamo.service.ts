@@ -6,6 +6,7 @@ import { EmpleadoService } from '../empleado/empleado.service';
 import { CreateReclamoDTO } from './dtos/create-reclamo.dto';
 import { FiltersDTO } from './dtos/filters.dto';
 import { ReasignarAreaDTO } from './dtos/reasignar-area.dto';
+import { ReclamoCompletoDTO } from './dtos/reclamo-completo.dto';
 import { ReclamoDTO } from './dtos/reclamo.dto';
 import { UpdateEstadoDTO } from './dtos/update-estado.dto';
 import { UpdateReclamoDTO } from './dtos/update-reclamo.dto';
@@ -131,48 +132,35 @@ export class ReclamoService {
     return mapper.toReclamoDTO(reclamo);
   }
 
-  async findById(id: string): Promise<ReclamoDTO> {
+  async findById(id: string): Promise<ReclamoCompletoDTO> {
     // Trae el reclamo según el ID
     const reclamo = await this.repository.findById(id);
     if (!reclamo) throw new NotFoundException('Reclamo no encontrado');
 
     // Mapea la información traída de la BD a DTO
-    return mapper.toReclamoDTO(reclamo);
+    return mapper.toReclamoCompletoDTO(reclamo);
   }
 
-  async findByCliente(clienteId: string): Promise<ReclamoDTO[]> {
+  async findByCliente(clienteId: string): Promise<ReclamoCompletoDTO[]> {
     // TRAE LOS RECLAMOS ASOCIADOS AL CLIENTE
 
     const reclamos = await this.repository.findByCliente(clienteId);
 
     // Mapea la información traída de la BD a array DTO
-    return reclamos.map((reclamo) => mapper.toReclamoDTO(reclamo));
+    return reclamos.map((reclamo) => mapper.toReclamoCompletoDTO(reclamo));
   }
 
-  async findByArea(userId: string): Promise<ReclamoDTO[]> {
+  async findByArea(userId: string): Promise<ReclamoCompletoDTO[]> {
     // TRAE LOS RECLAMOS ASOCIADOS AL ÁREA DEL EMPLEADO
 
     // Trae el id del área del empleado
     const areaId = await this.empleadoService.findAreaById(userId);
 
-    // Trae todos los reclamos
-    const reclamos = await this.repository.findAll();
+    // Trae todos los reclamos del área
+    const reclamos = await this.repository.findByArea(areaId);
 
-    // Filtra los reclamos que no pertenecen a ese área, según su ultimo cambio de estado
-    const reclamosFiltrados: ReclamoDTO[] = [];
-
-    for (const reclamo of reclamos) {
-      const ultimoCambio = await this.cambioEstadoService.findLastCambioEstado(
-        reclamo.id,
-      );
-
-      if (ultimoCambio?.areaId === areaId) {
-        const reclamoDTO = mapper.toReclamoDTO(reclamo);
-        reclamosFiltrados.push(reclamoDTO);
-      }
-    }
-
-    return reclamosFiltrados;
+    // Mapea la información traída de la BD a array DTO
+    return reclamos.map((reclamo) => mapper.toReclamoCompletoDTO(reclamo));
   }
 
   async countByFiltros(dto: FiltersDTO): Promise<number> {
