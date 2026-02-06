@@ -1,18 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dtos/register.dto';
-import { LoginDto } from './dtos/login.dto';
+import { RegisterDTO } from './dtos/register.dto';
+import { LoginDTO } from './dtos/login.dto';
+import { Role } from '../common/enums/role.enum';
 
 describe('AuthController', () => {
   let controller: AuthController;
 
-  // Mock del AuthService
   const mockAuthService = {
-    registerCliente: jest.fn(),
-    registerEmpleado: jest.fn(),
+    register: jest.fn(),
     login: jest.fn(),
-    firmarToken: jest.fn(), // por si lo querés testear indirectamente
   };
 
   beforeEach(async () => {
@@ -39,49 +37,53 @@ describe('AuthController', () => {
 
   describe('POST /auth/register-cliente', () => {
     it('debe registrar un cliente y devolver access_token', async () => {
-      const registerDto: RegisterDto = {
+      const registerDto: RegisterDTO = {
         email: 'cliente@test.com',
         contraseña: '123456',
-        nombre: 'Juan Pérez',
+        nombre: 'Juan Perez',
         telefono: '111222333',
       };
 
       const expectedResult = { access_token: 'jwt-cliente-123' };
 
-      mockAuthService.registerCliente.mockResolvedValue(expectedResult);
+      mockAuthService.register.mockResolvedValue(expectedResult);
 
-      const result = await controller.registrarCliente(registerDto);
+      const result = await controller.registerCliente(registerDto);
 
-      expect(mockAuthService.registerCliente).toHaveBeenCalledWith(registerDto);
+      expect(mockAuthService.register).toHaveBeenCalledWith(
+        registerDto,
+        Role.CLIENTE,
+      );
       expect(result).toEqual(expectedResult);
     });
   });
 
   describe('POST /auth/register-empleado', () => {
     it('debe registrar un empleado y devolver access_token', async () => {
-      const registerDto: RegisterDto = {
+      const registerDto: RegisterDTO = {
         email: 'empleado@test.com',
         contraseña: 'abc123',
-        nombre: 'Ana Gómez',
+        nombre: 'Ana Gomez',
         telefono: '999888777',
       };
 
       const expectedResult = { access_token: 'jwt-empleado-456' };
 
-      mockAuthService.registerEmpleado.mockResolvedValue(expectedResult);
+      mockAuthService.register.mockResolvedValue(expectedResult);
 
-      const result = await controller.registrarEmpleado(registerDto);
+      const result = await controller.registerEmpleado(registerDto);
 
-      expect(mockAuthService.registerEmpleado).toHaveBeenCalledWith(
+      expect(mockAuthService.register).toHaveBeenCalledWith(
         registerDto,
+        Role.EMPLEADO,
       );
       expect(result).toEqual(expectedResult);
     });
   });
 
   describe('POST /auth/login', () => {
-    it('debe iniciar sesión y devolver access_token', async () => {
-      const loginDto: LoginDto = {
+    it('debe iniciar sesion y devolver access_token', async () => {
+      const loginDto: LoginDTO = {
         email: 'usuario@test.com',
         contraseña: '123456',
       };
@@ -97,21 +99,18 @@ describe('AuthController', () => {
     });
   });
 
-  // Opcional: casos de error (el controller solo pasa la excepción)
   describe('Errores propagados desde el service', () => {
-    it('debe propagar BadRequestException en register-cliente si email duplicado', async () => {
-      const registerDto: RegisterDto = {
+    it('debe propagar error en register-cliente si falla el service', async () => {
+      const registerDto: RegisterDTO = {
         email: 'duplicado@test.com',
         contraseña: '123',
         nombre: 'Test',
         telefono: '123456',
       };
 
-      mockAuthService.registerCliente.mockRejectedValue(
-        new Error('El email ya está en uso'), // o BadRequestException si lo importás
-      );
+      mockAuthService.register.mockRejectedValue(new Error('El email ya esta en uso'));
 
-      await expect(controller.registrarCliente(registerDto)).rejects.toThrow();
+      await expect(controller.registerCliente(registerDto)).rejects.toThrow();
     });
   });
 });

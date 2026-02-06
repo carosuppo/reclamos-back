@@ -6,7 +6,15 @@ import { AppModule } from 'src/app.module';
 import { Medidas } from 'src/common/enums/medidas.enum';
 import { Role } from 'src/common/enums/role.enum';
 import prisma from 'src/lib/db';
-import supertest from 'supertest';
+import supertest, { Response } from 'supertest';
+import {
+  createArea,
+  createCliente,
+  createEmpleado,
+  createProyecto,
+  createTipoProyecto,
+  createTipoReclamo,
+} from './utils/factory';
 import { signEmpleadoToken } from './utils/jwt';
 
 describe('Reclamo – Reassign Area (E2E)', () => {
@@ -18,6 +26,12 @@ describe('Reclamo – Reassign Area (E2E)', () => {
   let areaDestinoId: string;
   let empleadoId: string;
   let reclamoId: string;
+  let clienteId: string;
+  let tipoReclamoId: string;
+  let tipoProyectoId: string;
+  let proyectoId: string;
+
+  const password = 'password123';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -29,40 +43,13 @@ describe('Reclamo – Reassign Area (E2E)', () => {
 
     server = app.getHttpServer() as Server;
 
-    // Limpiar DB
-    /*
-    await prisma.cambioEstado.deleteMany();
-    await prisma.reclamo.deleteMany();
-    await prisma.empleado.deleteMany();
-    await prisma.area.deleteMany();
-    await prisma.cliente.deleteMany();
-    await prisma.proyecto.deleteMany();
-    await prisma.tipoReclamo.deleteMany();
-    */
-
-    // Áreas
-    const areaOrigen = await prisma.area.create({
-      data: { nombre: 'Soporte' },
-    });
-
-    const areaDestino = await prisma.area.create({
-      data: { nombre: 'Infraestructura' },
-    });
+    const areaOrigen = await createArea();
+    const areaDestino = await createArea();
 
     areaOrigenId = areaOrigen.id;
     areaDestinoId = areaDestino.id;
 
-    // Empleado
-    const empleado = await prisma.empleado.create({
-      data: {
-        nombre: 'Empleado Test',
-        email: 'empleado7@example.com',
-        contraseña: 'password123',
-        role: Role.EMPLEADO,
-        areaId: areaOrigenId,
-        telefono: '123',
-      },
-    });
+    const { empleado } = await createEmpleado(password, areaOrigenId);
 
     empleadoId = empleado.id;
 
@@ -71,34 +58,22 @@ describe('Reclamo – Reassign Area (E2E)', () => {
       role: Role.EMPLEADO,
     });
 
-    // Cliente + proyecto + tipo reclamo
-    const cliente = await prisma.cliente.create({
-      data: {
-        nombre: 'Cliente',
-        email: 'cliente5@example.com',
-        contraseña: 'password123',
-        telefono: '123',
-        role: Role.CLIENTE,
-      },
-    });
+    const { cliente } = await createCliente(password);
+    const tipoReclamo = await createTipoReclamo();
+    const tipoProyecto = await createTipoProyecto();
 
-    const tipoReclamo = await prisma.tipoReclamo.create({
-      data: { nombre: 'Bug' },
-    });
+    clienteId = cliente.id;
+    tipoReclamoId = tipoReclamo.id;
+    tipoProyectoId = tipoProyecto.id;
 
-    const proyecto = await prisma.proyecto.create({
-      data: {
-        nombre: 'Proyecto',
-        clienteId: cliente.id,
-        tipoProyectoId: tipoReclamo.id,
-      },
-    });
+    const proyecto = await createProyecto(clienteId, tipoProyectoId);
 
-    // Reclamo
+    proyectoId = proyecto.id;
+
     const reclamo = await prisma.reclamo.create({
       data: {
-        tipoReclamoId: tipoReclamo.id,
-        proyectoId: proyecto.id,
+        tipoReclamoId: tipoReclamoId,
+        proyectoId: proyectoId,
         estado: Estados.PENDIENTE,
         prioridad: Medidas.MEDIA,
         criticidad: Medidas.MEDIA,
@@ -108,7 +83,6 @@ describe('Reclamo – Reassign Area (E2E)', () => {
 
     reclamoId = reclamo.id;
 
-    // Cambio de estado inicial
     await prisma.cambioEstado.create({
       data: {
         reclamoId,
@@ -120,6 +94,30 @@ describe('Reclamo – Reassign Area (E2E)', () => {
   });
 
   afterAll(async () => {
+    await prisma.cambioEstado.deleteMany({
+      where: { reclamoId },
+    });
+    await prisma.reclamo.deleteMany({
+      where: { id: reclamoId },
+    });
+    await prisma.proyecto.deleteMany({
+      where: { id: proyectoId },
+    });
+    await prisma.empleado.deleteMany({
+      where: { id: empleadoId },
+    });
+    await prisma.cliente.deleteMany({
+      where: { id: clienteId },
+    });
+    await prisma.tipoReclamo.deleteMany({
+      where: { id: tipoReclamoId },
+    });
+    await prisma.tipoProyecto.deleteMany({
+      where: { id: tipoProyectoId },
+    });
+    await prisma.area.deleteMany({
+      where: { id: { in: [areaOrigenId, areaDestinoId] } },
+    });
     await prisma.$disconnect();
     await app.close();
   });
@@ -134,14 +132,12 @@ describe('Reclamo – Reassign Area (E2E)', () => {
       })
       .expect(HttpStatus.OK);
 
-    // Reclamo actualizado
     const reclamo = await prisma.reclamo.findUnique({
       where: { id: reclamoId },
     });
 
     expect(reclamo?.estado).toBe(Estados.PENDIENTE);
 
-    // Último cambio de estado
     const cambios = await prisma.cambioEstado.findMany({
       where: { reclamoId },
       orderBy: { fechaInicio: 'desc' },
@@ -153,10 +149,10 @@ describe('Reclamo – Reassign Area (E2E)', () => {
   });
 
   it('el empleado ya no ve el reclamo en su área', async () => {
-    const response = await supertest(server)
-      .get('/reclamo/empleado')
+    const response = (await supertest(server)
+      .get('/reclamo/area')
       .set('Authorization', `Bearer ${token}`)
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.OK)) as unknown as Response;
 
     expect(response.body).toEqual([]);
   });

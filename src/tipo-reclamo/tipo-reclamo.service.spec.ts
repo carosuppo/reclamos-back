@@ -1,168 +1,69 @@
-import { CambioEstadoRepository } from '../cambio-estado/repositories/cambio-estado.repository';
-import { Estados, CambioEstado } from '@prisma/client';
-import prisma from '../lib/db';
+import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TipoReclamoService } from './tipo-reclamo.service';
+import { toTipoReclamoDTO } from './mappers/tipo-reclamo.mapper';
 
-jest.mock('../lib/db', () => ({
-  cambioEstado: {
-    create: jest.fn(),
-    updateMany: jest.fn(),
-    findMany: jest.fn(),
-  },
-}));
+describe('TipoReclamoService', () => {
+  let service: TipoReclamoService;
 
-describe('CambioEstadoRepository', () => {
-  let repository: CambioEstadoRepository;
-
-  const cambioEstadoEntity: CambioEstado = {
-    id: 'ce-1',
-    reclamoId: 'reclamo-1',
-    estado: Estados.PENDIENTE,
-    fechaInicio: new Date(),
-    fechaFin: null,
-    clienteId: 'cliente-1',
-    empleadoId: null,
-    descripcion: 'Descripción',
-    areaId: 'area-1',
+  const mockRepository = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
   };
 
-  beforeEach(() => {
-    repository = new CambioEstadoRepository();
+  const tipoReclamoEntity = {
+    id: 'tr-1',
+    nombre: 'Soporte',
+    descripcion: 'Soporte tecnico',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TipoReclamoService,
+        { provide: 'ITipoReclamoRepository', useValue: mockRepository },
+      ],
+    }).compile();
+
+    service = module.get<TipoReclamoService>(TipoReclamoService);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  /* ===============================
-        create
-     =============================== */
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
 
-  describe('create', () => {
-    it('crea un cambio de estado correctamente', async () => {
-      const createSpy = jest
-        .spyOn(prisma.cambioEstado, 'create')
-        .mockResolvedValue(cambioEstadoEntity);
+  describe('findAll', () => {
+    it('devuelve tipos de reclamo mapeados', async () => {
+      mockRepository.findAll.mockResolvedValue([tipoReclamoEntity]);
 
-      const result = await repository.create({
-        reclamoId: 'reclamo-1',
-        estado: Estados.PENDIENTE,
-        clienteId: 'cliente-1',
-        descripcion: 'Descripción',
-        areaId: 'area-1',
-      });
+      const result = await service.findAll();
 
-      expect(createSpy).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(cambioEstadoEntity);
-    });
-
-    it('lanza error cuando prisma falla', async () => {
-      jest
-        .spyOn(prisma.cambioEstado, 'create')
-        .mockRejectedValue(new Error('DB error'));
-
-      await expect(repository.create({} as never)).rejects.toThrow(
-        'Error al crear el cambio de estado',
-      );
+      expect(mockRepository.findAll).toHaveBeenCalled();
+      expect(result).toEqual([toTipoReclamoDTO(tipoReclamoEntity as never)]);
     });
   });
 
-  /* ===============================
-        close
-     =============================== */
+  describe('findById', () => {
+    it('devuelve tipo de reclamo si existe', async () => {
+      mockRepository.findById.mockResolvedValue(tipoReclamoEntity);
 
-  describe('close', () => {
-    it('cierra los estados abiertos del reclamo', async () => {
-      const updateManySpy = jest
-        .spyOn(prisma.cambioEstado, 'updateMany')
-        .mockResolvedValue({ count: 1 });
+      const result = await service.findById('tr-1');
 
-      await repository.close('reclamo-1');
-
-      expect(updateManySpy).toHaveBeenCalledWith({
-        where: {
-          reclamoId: 'reclamo-1',
-          OR: [{ fechaFin: null }, { fechaFin: { not: { isSet: true } } }],
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        data: { fechaFin: expect.any(Date) },
-      });
+      expect(mockRepository.findById).toHaveBeenCalledWith('tr-1');
+      expect(result).toEqual(toTipoReclamoDTO(tipoReclamoEntity as never));
     });
 
-    it('lanza error cuando close falla', async () => {
-      jest
-        .spyOn(prisma.cambioEstado, 'updateMany')
-        .mockRejectedValue(new Error('DB error'));
+    it('lanza NotFoundException si no existe', async () => {
+      mockRepository.findById.mockResolvedValue(null);
 
-      await expect(repository.close('reclamo-1')).rejects.toThrow(
-        'Error al cerrar el cambio de estado',
-      );
-    });
-  });
-
-  /* ===============================
-        findByReclamoId
-     =============================== */
-
-  describe('findByReclamoId', () => {
-    it('devuelve cambios de estado por reclamoId', async () => {
-      const findManySpy = jest
-        .spyOn(prisma.cambioEstado, 'findMany')
-        .mockResolvedValue([cambioEstadoEntity]);
-
-      const result = await repository.findByReclamoId('reclamo-1');
-
-      expect(findManySpy).toHaveBeenCalledWith({
-        where: { reclamoId: 'reclamo-1' },
-      });
-      expect(result).toHaveLength(1);
-    });
-  });
-
-  /* ===============================
-        findByEstado
-     =============================== */
-
-  describe('findByEstado', () => {
-    it('devuelve cambios de estado por estado', async () => {
-      const findManySpy = jest
-        .spyOn(prisma.cambioEstado, 'findMany')
-        .mockResolvedValue([cambioEstadoEntity]);
-
-      const result = await repository.findByEstado(Estados.PENDIENTE);
-
-      expect(findManySpy).toHaveBeenCalledWith({
-        where: { estado: Estados.PENDIENTE },
-      });
-      expect(result).toHaveLength(1);
-    });
-  });
-
-  /* ===============================
-        findLastCambioEstado
-     =============================== */
-
-  describe('findLastCambioEstado', () => {
-    it('devuelve el último cambio de estado', async () => {
-      const findManySpy = jest
-        .spyOn(prisma.cambioEstado, 'findMany')
-        .mockResolvedValue([cambioEstadoEntity]);
-
-      const result = await repository.findLastCambioEstado('reclamo-1');
-
-      expect(findManySpy).toHaveBeenCalledWith({
-        where: { reclamoId: 'reclamo-1' },
-        orderBy: { fechaInicio: 'desc' },
-        take: 1,
-      });
-      expect(result).toEqual(cambioEstadoEntity);
-    });
-
-    it('devuelve undefined si no hay cambios de estado', async () => {
-      jest.spyOn(prisma.cambioEstado, 'findMany').mockResolvedValue([]);
-
-      const result = await repository.findLastCambioEstado('reclamo-1');
-
-      expect(result).toBeUndefined();
+      await expect(service.findById('tr-x')).rejects.toThrow(NotFoundException);
     });
   });
 });

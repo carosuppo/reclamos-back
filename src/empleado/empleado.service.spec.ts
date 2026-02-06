@@ -1,48 +1,56 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { EmpleadoService } from './empleado.service';
-import { AreaService } from 'src/area/area.service';
-import { RegisterDto } from 'src/auth/dtos/register.dto';
-import { UpdateEmpleadoDto } from './dtos/update-empleado.dto';
-import { AuthMapper } from 'src/common/mappers/toAuthDto.mapper';
-import { Role } from 'src/common/enums/role.enum';
+import { RegisterDTO } from '../auth/dtos/register.dto';
+import { UpdateEmpleadoDTO } from './dtos/update-empleado.dto';
+import { EmpleadoMapper as mapper } from './mappers/empleado.mapper';
+import { EmpleadoValidator } from './validators/empleado.validator';
+import { AuthValidator } from '../auth/validators/auth.validator';
+import { AreaValidator } from '../area/validators/area.validator';
+
+const mockEmpleadoEntity = {
+  id: 'emp-1',
+  email: 'empleado@test.com',
+  contraseña: 'hashed',
+  nombre: 'Ana',
+  telefono: '123',
+  areaId: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  deletedAt: null,
+};
 
 describe('EmpleadoService', () => {
   let service: EmpleadoService;
-
-  const mockEmpleadoEntity = {
-    id: 'emp-1',
-    email: 'empleado@test.com',
-    contraseña: 'hashed',
-    nombre: 'Ana',
-    telefono: '123',
-    areaId: null,
-  };
 
   const mockEmpleadoRepository = {
     create: jest.fn(),
     findByEmail: jest.fn(),
     findById: jest.fn(),
     update: jest.fn(),
-    asignarArea: jest.fn(),
+    assignArea: jest.fn(),
   };
 
-  const mockAreaService = {
-    findByName: jest.fn(),
+  const mockValidator = {
+    validate: jest.fn(),
+  };
+
+  const mockAuthValidator = {
+    validateEmail: jest.fn(),
+  };
+
+  const mockAreaValidator = {
+    validate: jest.fn(),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmpleadoService,
-        {
-          provide: 'IEmpleadoRepository',
-          useValue: mockEmpleadoRepository,
-        },
-        {
-          provide: AreaService,
-          useValue: mockAreaService,
-        },
+        { provide: 'IEmpleadoRepository', useValue: mockEmpleadoRepository },
+        { provide: EmpleadoValidator, useValue: mockValidator },
+        { provide: AuthValidator, useValue: mockAuthValidator },
+        { provide: AreaValidator, useValue: mockAreaValidator },
       ],
     }).compile();
 
@@ -53,13 +61,13 @@ describe('EmpleadoService', () => {
     jest.clearAllMocks();
   });
 
-  /* ===============================
-        register
-     =============================== */
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
 
-  describe('register', () => {
+  describe('create', () => {
     it('registra correctamente un empleado', async () => {
-      const dto: RegisterDto = {
+      const dto: RegisterDTO = {
         email: 'empleado@test.com',
         contraseña: '123',
         nombre: 'Ana',
@@ -68,102 +76,84 @@ describe('EmpleadoService', () => {
 
       mockEmpleadoRepository.create.mockResolvedValue(mockEmpleadoEntity);
 
-      const result = await service.register(dto);
+      const result = await service.create(dto);
 
-      expect(result.email).toBe(dto.email);
-    });
-
-    it('lanza error con mensaje si falla el repository', async () => {
-      mockEmpleadoRepository.create.mockRejectedValue(new Error('DB error'));
-
-      await expect(service.register({} as RegisterDto)).rejects.toThrow(
-        'Error al crear el empleado: DB error',
+      expect(mockEmpleadoRepository.create).toHaveBeenCalledWith(
+        mapper.toEmpleadoEntity(dto),
       );
-    });
-
-    it('lanza error genérico si no es instancia de Error', async () => {
-      mockEmpleadoRepository.create.mockRejectedValue('boom');
-
-      await expect(service.register({} as RegisterDto)).rejects.toThrow(
-        'Error al crear el empleado: error desconocido',
-      );
+      expect(result).toEqual(mapper.toEmpleadoDTO(mockEmpleadoEntity as never));
     });
   });
-
-  /* ===============================
-        update
-     =============================== */
 
   describe('update', () => {
     it('actualiza correctamente', async () => {
-      mockEmpleadoRepository.findById.mockResolvedValue(mockEmpleadoEntity);
-      mockEmpleadoRepository.findByEmail.mockResolvedValue(null);
-      mockEmpleadoRepository.update.mockResolvedValue(mockEmpleadoEntity);
+      const dto: UpdateEmpleadoDTO = { nombre: 'Nuevo' };
 
-      const dto: UpdateEmpleadoDto = { nombre: 'Nuevo' };
+      mockValidator.validate.mockResolvedValue(true);
+      mockEmpleadoRepository.update.mockResolvedValue(mockEmpleadoEntity);
 
       const result = await service.update('emp-1', dto);
 
-      expect(mockEmpleadoRepository.update).toHaveBeenCalled();
-      expect(result).toBe(mockEmpleadoEntity);
-    });
-
-    it('lanza error si el empleado no existe', async () => {
-      mockEmpleadoRepository.findById.mockResolvedValue(null);
-
-      await expect(service.update('no-id', {})).rejects.toThrow(
-        BadRequestException,
+      expect(mockValidator.validate).toHaveBeenCalledWith('emp-1');
+      expect(mockEmpleadoRepository.update).toHaveBeenCalledWith(
+        mapper.toEmpleadoUpdateData('emp-1', dto),
       );
+      expect(result).toBe(true);
     });
 
-    it('lanza error si el email ya está en uso', async () => {
-      mockEmpleadoRepository.findById.mockResolvedValue(mockEmpleadoEntity);
-      mockEmpleadoRepository.findByEmail.mockResolvedValue({
-        ...mockEmpleadoEntity,
-        id: 'otro-id',
-      });
+    it('valida email si se envia', async () => {
+      const dto: UpdateEmpleadoDTO = { email: 'nuevo@test.com' };
 
-      await expect(
-        service.update('emp-1', { email: 'empleado@test.com' }),
-      ).rejects.toThrow('El email ya está en uso.');
+      mockValidator.validate.mockResolvedValue(true);
+      mockAuthValidator.validateEmail.mockResolvedValue(true);
+      mockEmpleadoRepository.update.mockResolvedValue(mockEmpleadoEntity);
+
+      await service.update('emp-1', dto);
+
+      expect(mockAuthValidator.validateEmail).toHaveBeenCalledWith(dto.email);
     });
   });
 
-  /* ===============================
-        findOne
-     =============================== */
+  describe('assignArea', () => {
+    it('asigna area correctamente', async () => {
+      mockValidator.validate.mockResolvedValue(true);
+      mockAreaValidator.validate.mockResolvedValue(true);
+      mockEmpleadoRepository.assignArea.mockResolvedValue(true);
 
-  describe('findOne', () => {
-    it('devuelve EmpleadoDto si existe', async () => {
+      const result = await service.assignArea('emp-1', { areaId: 'area-1' } as never);
+
+      expect(mockValidator.validate).toHaveBeenCalledWith('emp-1');
+      expect(mockAreaValidator.validate).toHaveBeenCalledWith('area-1');
+      expect(mockEmpleadoRepository.assignArea).toHaveBeenCalledWith('emp-1', 'area-1');
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('findByEmail', () => {
+    it('devuelve EmpleadoDTO si existe', async () => {
       mockEmpleadoRepository.findByEmail.mockResolvedValue(mockEmpleadoEntity);
 
-      const result = await service.findOne('empleado@test.com');
+      const result = await service.findByEmail('empleado@test.com');
 
-      expect(result?.email).toBe(mockEmpleadoEntity.email);
+      expect(result).toEqual(mapper.toEmpleadoDTO(mockEmpleadoEntity as never));
     });
 
-    it('devuelve null si no existe', async () => {
+    it('lanza NotFoundException si no existe', async () => {
       mockEmpleadoRepository.findByEmail.mockResolvedValue(null);
 
-      const result = await service.findOne('no@existe.com');
-
-      expect(result).toBeNull();
+      await expect(service.findByEmail('no@existe.com')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
-  /* ===============================
-        findForAuth
-     =============================== */
-
   describe('findForAuth', () => {
-    it('devuelve AuthDto si existe', async () => {
+    it('devuelve AuthDTO si existe', async () => {
       mockEmpleadoRepository.findByEmail.mockResolvedValue(mockEmpleadoEntity);
 
       const result = await service.findForAuth('empleado@test.com');
 
-      expect(result).toEqual(
-        AuthMapper.toAuthDto(mockEmpleadoEntity, Role.EMPLEADO),
-      );
+      expect(result).toEqual(mapper.toAuthEmpleadoDTO(mockEmpleadoEntity as never));
     });
 
     it('devuelve null si no existe', async () => {
@@ -175,28 +165,38 @@ describe('EmpleadoService', () => {
     });
   });
 
-  /* ===============================
-        asignarArea
-     =============================== */
+  describe('findById', () => {
+    it('devuelve EmpleadoDTO si existe', async () => {
+      mockEmpleadoRepository.findById.mockResolvedValue(mockEmpleadoEntity);
 
-  describe('asignarArea', () => {
-    it('lanza error si el área no existe', async () => {
-      mockAreaService.findByName.mockResolvedValue(null);
+      const result = await service.findById('emp-1');
 
-      await expect(
-        service.asignarArea('empleado@test.com', { area: 'Inexistente' }),
-      ).rejects.toThrow('El area no existe.');
+      expect(result).toEqual(mapper.toEmpleadoDTO(mockEmpleadoEntity as never));
+    });
+
+    it('lanza NotFoundException si no existe', async () => {
+      mockEmpleadoRepository.findById.mockResolvedValue(null);
+
+      await expect(service.findById('emp-x')).rejects.toThrow(NotFoundException);
     });
   });
 
-  /* ===============================
-        remove
-     =============================== */
+  describe('findAreaById', () => {
+    it('devuelve area del empleado', async () => {
+      mockEmpleadoRepository.findById.mockResolvedValue({
+        ...mockEmpleadoEntity,
+        areaId: 'area-1',
+      });
 
-  describe('remove', () => {
-    it('retorna mensaje de borrado', () => {
-      const result = service.remove(1);
-      expect(result).toContain('1');
+      const result = await service.findAreaById('emp-1');
+
+      expect(result).toBe('area-1');
+    });
+
+    it('lanza NotFoundException si no existe', async () => {
+      mockEmpleadoRepository.findById.mockResolvedValue(null);
+
+      await expect(service.findAreaById('emp-x')).rejects.toThrow(NotFoundException);
     });
   });
 });
