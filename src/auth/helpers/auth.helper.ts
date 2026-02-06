@@ -52,8 +52,7 @@ export class AuthHelper {
     rol: Role, // Rol del usuario
   ): Promise<{ access_token: string }> {
     // Valida coincidencia entre las contraseñas
-    await this.validarContraseña(contraseñaDTO, contraseñaUsuario);
-
+    await this.validarContraseña(contraseñaUsuario, contraseñaDTO);
     // Devuelve el token
     return this.firmarToken(usuarioId, rol);
   }
@@ -66,21 +65,13 @@ export class AuthHelper {
     contraseñaHash: string,
     contraseñaPlana: string,
   ): Promise<boolean> {
-    try {
-      const isValid = await bcryptSafe.compare(
-        contraseñaPlana,
-        contraseñaHash,
-      );
+    const isValid = await bcryptSafe.compare(contraseñaPlana, contraseñaHash);
 
-      if (!isValid) {
-        throw new UnauthorizedException('Credenciales inválidas.');
-      }
-
-      return isValid;
-    } catch {
-      // En caso de algún error, lanzarlo como credenciales inválidas
+    if (!isValid) {
       throw new UnauthorizedException('Credenciales inválidas.');
     }
+
+    return isValid;
   }
 
   async firmarToken(
