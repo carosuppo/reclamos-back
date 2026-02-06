@@ -48,17 +48,6 @@ export class ReclamoController {
     return this.service.create(dto, userId);
   }
 
-  @SwaggerUpdate('Datos del reclamo', UpdateReclamoDTO, ReclamoDTO)
-  @Roles(Role.CLIENTE) // Ingreso permitido sólo para clientes
-  @Patch('/:id')
-  update(
-    @Param('id', ObjectIdPipe) id: string, // Valida que el id sea valido con el pipe
-    @Body() dto: UpdateReclamoDTO,
-    @CurrentUser() userId: string,
-  ): Promise<ReclamoDTO> {
-    return this.service.update(id, dto, userId);
-  }
-
   @SwaggerUpdate('Estado de Reclamo', UpdateEstadoDTO, ReclamoDTO)
   @Roles(Role.EMPLEADO) // Ingreso permitido sólo para empleados
   @Put('/change-estado/:id')
@@ -81,6 +70,17 @@ export class ReclamoController {
     return this.service.reassignArea(id, dto, userId);
   }
 
+  @SwaggerUpdate('Datos del reclamo', UpdateReclamoDTO, ReclamoDTO)
+  @Roles(Role.CLIENTE) // Ingreso permitido sólo para clientes
+  @Patch('/:id')
+  update(
+    @Param('id', ObjectIdPipe) id: string, // Valida que el id sea valido con el pipe
+    @Body() dto: UpdateReclamoDTO,
+    @CurrentUser() userId: string,
+  ): Promise<ReclamoDTO> {
+    return this.service.update(id, dto, userId);
+  }
+
   @SwaggerFindAll('Reclamos de cliente', ReclamoCompletoDTO)
   @Roles(Role.CLIENTE)
   @Get()
@@ -88,18 +88,17 @@ export class ReclamoController {
     return this.service.findByCliente(userId);
   }
 
-  @SwaggerFindById('Reclamo', ReclamoCompletoDTO)
-  @Roles(Role.CLIENTE) // Ingreso permitido sólo para empleados
-  @Get('/:id')
-  findById(@Param('id', ObjectIdPipe) id: string): Promise<ReclamoCompletoDTO> {
-    return this.service.findById(id);
-  }
-
   @SwaggerFindAll('Reclamos de un área', ReclamoCompletoDTO)
   @Roles(Role.EMPLEADO)
   @Get('area')
   findByArea(@CurrentUser() userId: string): Promise<ReclamoCompletoDTO[]> {
     return this.service.findByArea(userId);
+  }
+
+  @SwaggerFindById('Reclamo', ReclamoCompletoDTO)
+  @Get('/:id')
+  findById(@Param('id', ObjectIdPipe) id: string): Promise<ReclamoCompletoDTO> {
+    return this.service.findById(id);
   }
 
   @SwaggerFindAll('Reclamos con filtros', ReclamoDTO)
