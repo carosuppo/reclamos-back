@@ -1,99 +1,105 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Estados } from '@prisma/client';
+import { CambioEstadoService } from '../cambio-estado/cambio-estado.service';
+import { CambioEstadoMapper } from '../cambio-estado/mappers/cambio-estado.mapper';
+import { Medidas } from '../common/enums/medidas.enum';
+import { EmpleadoService } from '../empleado/empleado.service';
+import { ReclamoHelper } from './helpers/reclamo.helper';
+import { ReclamoMapper as mapper } from './mappers/reclamo.mapper';
 import { ReclamoService } from './reclamo.service';
 import { ReclamoValidator } from './validators/reclamo.validator';
-import { AreaValidator } from './validators/area.validator';
-import { ReclamoHelper } from './helpers/reclamo.helper';
-import { EmpleadoService } from 'src/empleado/empleado.service';
-import { CreateReclamoDto } from './dtos/create-reclamo.dto';
-import { UpdateEstadoDto } from './dtos/update-estado.dto';
-import { ReasignarAreaDto } from './dtos/reasignar-area.dto';
-import { UpdateReclamoDto } from './dtos/update-reclamo.dto';
-import { BadRequestException } from '@nestjs/common';
-import { Estados } from '@prisma/client';
-import { Medidas } from 'src/common/enums/medidas.enum';
-import { toReclamoCreateData } from './mappers/toReclamoEntity';
-
-const mockReclamo = {
-  id: 'rec-123',
-  tipoReclamoId: 'tr-001',
-  proyectoId: 'proy-001',
-  prioridad: Medidas.ALTO,
-  criticidad: Medidas.MEDIO,
-  descripcion: 'Test reclamo',
-  estado: Estados.PENDIENTE,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  deletedAt: null,
-  archivo: null,
-};
-
-const mockCambioEstado = {
-  id: 'ce-001',
-  reclamoId: 'rec-123',
-  areaId: 'area-001',
-  estado: Estados.PENDIENTE,
-  descripcion: 'Inicial',
-  fechaInicio: new Date(),
-  fechaFin: null,
-  empleadoId: 'emp-001',
-  clienteId: null,
-};
-
-// DTO esperado EXACTO según toReclamoDto
-const expectedReclamoDto = {
-  id: 'rec-123',
-  tipoReclamo: 'tr-001',
-  proyecto: 'proy-001',
-  prioridad: Medidas.ALTO,
-  criticidad: Medidas.MEDIO,
-  descripcion: 'Test reclamo',
-  estado: Estados.PENDIENTE,
-};
 
 describe('ReclamoService', () => {
   let service: ReclamoService;
 
-  const mockReclamoRepository = {
+  const mockRepository = {
     create: jest.fn(),
-    findByCliente: jest.fn(),
-    findOne: jest.fn(),
     update: jest.fn(),
-    updateEstado: jest.fn(),
+    changeEstado: jest.fn(),
     reassignArea: jest.fn(),
-    findAll: jest.fn(),
+    findById: jest.fn(),
+    findByCliente: jest.fn(),
+    findByArea: jest.fn(),
+    findDates: jest.fn(),
+    countByFiltros: jest.fn(),
+    countByArea: jest.fn(),
   };
 
   const mockValidator = {
-    validateTipoReclamo: jest.fn(),
-    validateProyecto: jest.fn(),
+    validateCreate: jest.fn(),
     validateReclamo: jest.fn(),
-    validateArea: jest.fn(),
-    validateCambioEstadoEmpleado: jest.fn(),
-    validateCambioEstadoCliente: jest.fn(),
-  };
-
-  const mockAreaValidator = {
+    validateCambioEstado: jest.fn(),
+    validateReassignArea: jest.fn(),
     validateArea: jest.fn(),
   };
 
   const mockHelper = {
-    findLastCambioEstado: jest.fn(),
-    findOne: jest.fn(),
+    calcularTiempoResolucion: jest.fn(),
+    calcularCantidadPromedio: jest.fn(),
   };
 
   const mockEmpleadoService = {
-    findArea: jest.fn(),
+    findAreaById: jest.fn(),
+  };
+
+  const mockCambioEstadoService = {
+    findLastCambioEstado: jest.fn(),
+  };
+
+  const reclamoEntity = {
+    id: 'rec-1',
+    tipoReclamoId: 'tr-1',
+    proyectoId: 'proy-1',
+    prioridad: Medidas.ALTA,
+    criticidad: Medidas.MEDIA,
+    descripcion: 'Descripcion',
+    estado: Estados.PENDIENTE,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+  } as never;
+
+  const reclamoCompletoEntity = {
+    id: 'rec-1',
+    tipoReclamoId: 'tr-1',
+    proyectoId: 'proy-1',
+    prioridad: Medidas.ALTA,
+    criticidad: Medidas.MEDIA,
+    descripcion: 'Descripcion',
+    estado: Estados.PENDIENTE,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    tipoReclamo: { id: 'tr-1', nombre: 'Tipo' },
+    proyecto: {
+      id: 'proy-1',
+      nombre: 'Proyecto',
+      cliente: { id: 'cli-1', nombre: 'Cliente' },
+    },
+  } as never;
+
+  const cambioEstadoDto = {
+    id: 'ce-1',
+    reclamoId: 'rec-1',
+    areaId: 'area-1',
+    fechaInicio: new Date(),
+    fechaFin: null,
+    descripcion: 'Desc',
+    estado: Estados.PENDIENTE,
+    empleadoId: null,
+    clienteId: 'cli-1',
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReclamoService,
-        { provide: 'IReclamoRepository', useValue: mockReclamoRepository },
+        { provide: 'IReclamoRepository', useValue: mockRepository },
         { provide: ReclamoValidator, useValue: mockValidator },
-        { provide: AreaValidator, useValue: mockAreaValidator },
         { provide: ReclamoHelper, useValue: mockHelper },
         { provide: EmpleadoService, useValue: mockEmpleadoService },
+        { provide: CambioEstadoService, useValue: mockCambioEstadoService },
       ],
     }).compile();
 
@@ -109,151 +115,235 @@ describe('ReclamoService', () => {
   });
 
   describe('create', () => {
-    it('debe crear un reclamo correctamente', async () => {
-      const dto: CreateReclamoDto = {
-        tipoReclamoId: 'tr-001',
-        proyectoId: 'proy-001',
-        prioridad: Medidas.ALTO,
-        criticidad: Medidas.MEDIO,
-        areaId: 'area-001',
-        descripcion: 'Test',
+    it('crea un reclamo correctamente', async () => {
+      const dto = {
+        tipoReclamoId: 'tr-1',
+        proyectoId: 'proy-1',
+        areaId: 'area-1',
+        prioridad: Medidas.ALTA,
+        criticidad: Medidas.MEDIA,
+        descripcion: 'Desc',
       };
-      const userId = 'cli-001';
+      const userId = 'cli-1';
 
-      mockValidator.validateTipoReclamo.mockResolvedValue(true);
-      mockValidator.validateProyecto.mockResolvedValue(true);
-      mockReclamoRepository.create.mockResolvedValue({
-        ...mockReclamo,
-        cambioEstadoId: 'ce-001',
-      });
+      mockValidator.validateCreate.mockResolvedValue(undefined);
+      mockRepository.create.mockResolvedValue(reclamoEntity);
 
-      const result = await service.create(dto, userId);
+      const result = await service.create(dto as never, userId);
 
-      expect(mockValidator.validateTipoReclamo).toHaveBeenCalledWith(
+      expect(mockValidator.validateCreate).toHaveBeenCalledWith(
         dto.tipoReclamoId,
-      );
-      expect(mockValidator.validateProyecto).toHaveBeenCalledWith(
         dto.proyectoId,
+        dto.areaId,
       );
-      expect(mockReclamoRepository.create).toHaveBeenCalledWith(
-        toReclamoCreateData(dto, userId),
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        mapper.toReclamoCreateData(dto as never, userId),
         userId,
       );
-      expect(result).toEqual(expectedReclamoDto);
-    });
-  });
-
-  describe('findByCliente', () => {
-    it('debe devolver reclamos del cliente', async () => {
-      const clienteId = 'cli-001';
-      mockReclamoRepository.findByCliente.mockResolvedValue([mockReclamo]);
-
-      const result = await service.findByCliente(clienteId);
-
-      expect(result).toEqual([expectedReclamoDto]);
+      expect(result).toEqual(mapper.toReclamoDTO(reclamoEntity));
     });
   });
 
   describe('update', () => {
-    it('debe actualizar un reclamo', async () => {
-      const id = 'rec-123';
-      const dto: UpdateReclamoDto = { descripcion: 'Actualizado' };
-      const userId = 'cli-001';
+    it('actualiza un reclamo', async () => {
+      const id = 'rec-1';
+      const dto = { descripcion: 'Actualizado' };
+      const userId = 'cli-1';
 
-      mockHelper.findOne.mockResolvedValue(expectedReclamoDto);
-      mockHelper.findLastCambioEstado.mockResolvedValue(mockCambioEstado);
+      mockRepository.findById.mockResolvedValue(reclamoCompletoEntity);
+      mockCambioEstadoService.findLastCambioEstado.mockResolvedValue(
+        cambioEstadoDto,
+      );
+      mockRepository.update.mockResolvedValue(reclamoEntity);
 
-      mockReclamoRepository.update.mockResolvedValue(mockReclamo);
+      const expectedReclamoDto = mapper.toReclamoCompletoDTO(
+        reclamoCompletoEntity,
+      );
 
-      const result = await service.update(id, dto, userId);
+      const result = await service.update(id, dto as never, userId);
 
-      expect(mockHelper.findOne).toHaveBeenCalledWith(id);
-      expect(mockHelper.findLastCambioEstado).toHaveBeenCalledWith(id);
-      expect(mockReclamoRepository.update).toHaveBeenCalled();
-      expect(result).toEqual(expectedReclamoDto); // Si update cambia descripción, ajusta expected aquí
+      expect(mockRepository.findById).toHaveBeenCalledWith(id);
+      expect(mockCambioEstadoService.findLastCambioEstado).toHaveBeenCalledWith(
+        id,
+      );
+      expect(mockRepository.update).toHaveBeenCalledWith(
+        mapper.toReclamoUpdateData(
+          id,
+          dto as never,
+          userId,
+          expectedReclamoDto,
+          cambioEstadoDto as never,
+        ),
+      );
+      expect(result).toEqual(mapper.toReclamoDTO(reclamoEntity));
     });
   });
 
-  describe('updateEstado', () => {
-    it('debe actualizar estado correctamente', async () => {
-      const id = 'rec-123';
-      const dto: UpdateEstadoDto = {
-        estado: Estados.EN_PROCESO,
-        descripcion: 'En proceso',
-      };
-      const userId = 'emp-001';
+  describe('changeEstado', () => {
+    it('actualiza estado correctamente', async () => {
+      const id = 'rec-1';
+      const dto = { estado: Estados.EN_PROCESO, descripcion: 'En proceso' };
+      const userId = 'emp-1';
 
-      mockValidator.validateReclamo.mockResolvedValue(true);
-      mockHelper.findLastCambioEstado.mockResolvedValue(mockCambioEstado);
-      mockValidator.validateCambioEstadoEmpleado.mockReturnValue(true);
-      mockAreaValidator.validateArea.mockResolvedValue(true);
-
-      mockReclamoRepository.updateEstado.mockResolvedValue(mockReclamo);
-
-      const result = await service.updateEstado(id, dto, userId);
-
-      expect(mockAreaValidator.validateArea).toHaveBeenCalledWith(
-        mockCambioEstado.areaId,
-        userId,
+      mockValidator.validateReclamo.mockResolvedValue(undefined);
+      mockCambioEstadoService.findLastCambioEstado.mockResolvedValue(
+        cambioEstadoDto,
       );
-      expect(mockReclamoRepository.updateEstado).toHaveBeenCalled();
-      expect(result).toEqual(expectedReclamoDto);
+      mockRepository.changeEstado.mockResolvedValue(reclamoEntity);
+
+      const result = await service.changeEstado(id, dto as never, userId);
+
+      expect(mockValidator.validateReclamo).toHaveBeenCalledWith(id);
+      expect(mockValidator.validateCambioEstado).toHaveBeenCalledWith(
+        cambioEstadoDto.estado,
+        dto.estado,
+      );
+      expect(mockRepository.changeEstado).toHaveBeenCalledWith(
+        CambioEstadoMapper.toCambioEstadoData(
+          cambioEstadoDto as never,
+          dto as never,
+          userId,
+        ),
+      );
+      expect(result).toEqual(mapper.toReclamoDTO(reclamoEntity));
     });
   });
 
   describe('reassignArea', () => {
-    it('debe reasignar área correctamente', async () => {
-      const id = 'rec-123';
-      const dto: ReasignarAreaDto = {
-        areaId: 'area-002',
-        descripcion: 'Reasignado',
-      };
-      const userId = 'cli-001';
+    it('reasigna area correctamente', async () => {
+      const id = 'rec-1';
+      const dto = { areaId: 'area-2', descripcion: 'Reasignado' };
+      const userId = 'cli-1';
 
-      mockValidator.validateReclamo.mockResolvedValue(true);
-      mockValidator.validateArea.mockResolvedValue(true);
-      mockHelper.findLastCambioEstado.mockResolvedValue(mockCambioEstado);
-      mockAreaValidator.validateArea.mockResolvedValue(true);
-      mockValidator.validateCambioEstadoCliente.mockReturnValue(undefined);
+      mockValidator.validateReassignArea.mockResolvedValue(undefined);
+      mockCambioEstadoService.findLastCambioEstado.mockResolvedValue({
+        ...cambioEstadoDto,
+        estado: Estados.EN_PROCESO,
+      });
+      mockRepository.reassignArea.mockResolvedValue(reclamoEntity);
 
-      mockReclamoRepository.reassignArea.mockResolvedValue(mockReclamo);
+      const result = await service.reassignArea(id, dto as never, userId);
 
-      const result = await service.reassignArea(id, dto, userId);
+      expect(mockValidator.validateReassignArea).toHaveBeenCalledWith(
+        id,
+        dto.areaId,
+      );
+      expect(mockValidator.validateCambioEstado).toHaveBeenCalledWith(
+        Estados.EN_PROCESO,
+      );
+      expect(mockRepository.reassignArea).toHaveBeenCalledWith(
+        CambioEstadoMapper.toCambioEstadoClienteData(
+          { ...cambioEstadoDto, estado: Estados.EN_PROCESO } as never,
+          dto as never,
+          userId,
+        ),
+      );
+      expect(result).toEqual(mapper.toReclamoDTO(reclamoEntity));
+    });
+  });
 
-      expect(mockReclamoRepository.reassignArea).toHaveBeenCalled();
-      expect(result).toEqual(expectedReclamoDto);
+  describe('findById', () => {
+    it('devuelve reclamo completo', async () => {
+      mockRepository.findById.mockResolvedValue(reclamoCompletoEntity);
+
+      const result = await service.findById('rec-1');
+
+      expect(result).toEqual(
+        mapper.toReclamoCompletoDTO(reclamoCompletoEntity),
+      );
+    });
+
+    it('lanza NotFoundException si no existe', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+
+      await expect(service.findById('rec-1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('findByCliente', () => {
+    it('devuelve reclamos del cliente', async () => {
+      mockRepository.findByCliente.mockResolvedValue([reclamoCompletoEntity]);
+
+      const result = await service.findByCliente('cli-1');
+
+      expect(result).toEqual([
+        mapper.toReclamoCompletoDTO(reclamoCompletoEntity),
+      ]);
     });
   });
 
   describe('findByArea', () => {
-    it('debe devolver reclamos del área del empleado', async () => {
-      const userId = 'emp-001';
-      const areaId = 'area-001';
+    it('devuelve reclamos del area del empleado', async () => {
+      mockEmpleadoService.findAreaById.mockResolvedValue('area-1');
+      mockRepository.findByArea.mockResolvedValue([reclamoCompletoEntity]);
 
-      mockEmpleadoService.findArea.mockResolvedValue(areaId);
-      mockReclamoRepository.findAll.mockResolvedValue([mockReclamo]);
-      mockHelper.findLastCambioEstado.mockResolvedValue({
-        ...mockCambioEstado,
-        areaId,
-      });
+      const result = await service.findByArea('emp-1');
 
-      const result = await service.findByArea(userId);
-
-      expect(mockEmpleadoService.findArea).toHaveBeenCalledWith(userId);
-      expect(result).toEqual([expectedReclamoDto]);
+      expect(mockEmpleadoService.findAreaById).toHaveBeenCalledWith('emp-1');
+      expect(result).toEqual([
+        mapper.toReclamoCompletoDTO(reclamoCompletoEntity),
+      ]);
     });
+  });
 
-    it('debe lanzar BadRequestException si el empleado no tiene área', async () => {
-      const userId = 'emp-001';
+  describe('countByFiltros', () => {
+    it('cuenta reclamos por filtros', async () => {
+      const dto = { estado: Estados.PENDIENTE };
+      mockRepository.countByFiltros.mockResolvedValue(3);
 
-      mockEmpleadoService.findArea.mockResolvedValue(null);
+      const result = await service.countByFiltros(dto as never);
 
-      await expect(service.findByArea(userId)).rejects.toThrow(
-        BadRequestException,
+      expect(mockRepository.countByFiltros).toHaveBeenCalledWith(
+        mapper.toFiltrosReclamoData(dto as never),
       );
-      await expect(service.findByArea(userId)).rejects.toThrow(
-        'El empleado no tiene un area asignada.',
+      expect(result).toBe(3);
+    });
+  });
+
+  describe('getTiemProm', () => {
+    it('calcula tiempo promedio de resolucion', async () => {
+      mockValidator.validateArea.mockResolvedValue(undefined);
+      mockRepository.findDates.mockResolvedValue([
+        {
+          createdAt: new Date('2026-01-01'),
+          updatedAt: new Date('2026-01-02'),
+        },
+      ]);
+      mockHelper.calcularTiempoResolucion.mockReturnValue(1.0);
+
+      const result = await service.getTiemProm('area-1');
+
+      expect(mockValidator.validateArea).toHaveBeenCalledWith('area-1');
+      expect(mockRepository.findDates).toHaveBeenCalledWith(
+        'area-1',
+        Estados.RESUELTO,
       );
+      expect(mockHelper.calcularTiempoResolucion).toHaveBeenCalled();
+      expect(result).toBe(1.0);
+    });
+  });
+
+  describe('getCantProm', () => {
+    it('calcula cantidad promedio de resolucion', async () => {
+      mockValidator.validateArea.mockResolvedValue(undefined);
+      mockRepository.countByArea
+        .mockResolvedValueOnce(10)
+        .mockResolvedValueOnce(4);
+      mockHelper.calcularCantidadPromedio.mockReturnValue(0.4);
+
+      const result = await service.getCantProm('area-1');
+
+      expect(mockValidator.validateArea).toHaveBeenCalledWith('area-1');
+      expect(mockRepository.countByArea).toHaveBeenNthCalledWith(1, 'area-1');
+      expect(mockRepository.countByArea).toHaveBeenNthCalledWith(
+        2,
+        'area-1',
+        Estados.RESUELTO,
+      );
+      expect(mockHelper.calcularCantidadPromedio).toHaveBeenCalledWith(4, 10);
+      expect(result).toBe(0.4);
     });
   });
 });

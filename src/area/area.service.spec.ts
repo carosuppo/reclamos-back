@@ -1,25 +1,28 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AreaService } from './area.service';
-import { CreateAreaDto } from './dtos/create-area.dto';
-import { UpdateAreaDto } from './dtos/update-area.dto';
-
-interface Area {
-  id: string;
-  nombre: string;
-  descripcion?: string | null;
-  deletedAt?: Date | null;
-}
+import { CreateAreaDTO, UpdateAreaDTO } from './dtos/create-area.dto';
+import { AreaMapper as mapper } from './mappers/area.mapper';
 
 describe('AreaService', () => {
   let service: AreaService;
 
-  // Mock del repository
   const mockAreaRepository = {
     create: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
+    findByName: jest.fn(),
     update: jest.fn(),
-    softDelete: jest.fn(),
+    delete: jest.fn(),
+  };
+
+  const areaEntity = {
+    id: '1',
+    nombre: 'Ventas',
+    descripcion: 'Area encargada de ventas',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
   };
 
   beforeEach(async () => {
@@ -45,123 +48,91 @@ describe('AreaService', () => {
   });
 
   describe('create', () => {
-    it('debe crear un área y devolver su DTO correctamente', async () => {
-      const createDto: CreateAreaDto = {
+    it('crea un area y devuelve true', async () => {
+      const createDto: CreateAreaDTO = {
         nombre: 'Ventas',
-        descripcion: 'Área encargada de ventas',
-      };
-
-      const areaEntity: Area = {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        nombre: 'Ventas',
-        descripcion: 'Área encargada de ventas',
+        descripcion: 'Area encargada de ventas',
       };
 
       mockAreaRepository.create.mockResolvedValue(areaEntity);
 
       const result = await service.create(createDto);
 
-      // Evitamos el warning de unbound-method usando .mock.calls
-      expect(mockAreaRepository.create.mock.calls[0][0]).toEqual(createDto);
-      expect(result).toEqual({
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        nombre: 'Ventas',
-        descripcion: 'Área encargada de ventas',
-      });
-    });
-  });
-
-  describe('findAll', () => {
-    it('debe devolver un array de AreaDto', async () => {
-      const areasEntity: Area[] = [
-        {
-          id: '1',
-          nombre: 'RRHH',
-          descripcion: 'Recursos Humanos',
-        },
-        {
-          id: '2',
-          nombre: 'IT',
-          descripcion: null,
-        },
-      ];
-
-      mockAreaRepository.findAll.mockResolvedValue(areasEntity);
-
-      const result = await service.findAll();
-
-      expect(mockAreaRepository.findAll).toHaveBeenCalled();
-      expect(result).toHaveLength(2);
-      expect(result).toEqual([
-        { id: '1', nombre: 'RRHH', descripcion: 'Recursos Humanos' },
-        { id: '2', nombre: 'IT', descripcion: undefined },
-      ]);
-    });
-  });
-
-  describe('findById', () => {
-    it('debe devolver un AreaDto si el área existe', async () => {
-      const areaEntity: Area = {
-        id: '1',
-        nombre: 'Marketing',
-        descripcion: 'Área de marketing digital',
-      };
-
-      mockAreaRepository.findById.mockResolvedValue(areaEntity);
-
-      const result = await service.findOne('1');
-
-      expect(mockAreaRepository.findById.mock.calls[0][0]).toBe('1');
-      expect(result).toEqual({
-        id: '1',
-        nombre: 'Marketing',
-        descripcion: 'Área de marketing digital',
-      });
-    });
-
-    it('debe devolver null si el área no existe', async () => {
-      mockAreaRepository.findById.mockResolvedValue(null);
-
-      const result = await service.findOne('999');
-
-      expect(result).toBeNull();
+      expect(mockAreaRepository.create).toHaveBeenCalledWith(
+        mapper.toAreaCreateData(createDto),
+      );
+      expect(result).toBe(true);
     });
   });
 
   describe('update', () => {
-    it('debe actualizar un área y devolver el DTO actualizado', async () => {
-      const updateDto: UpdateAreaDto = {
-        nombre: 'Ventas Actualizado',
-      };
+    it('actualiza un area y devuelve true', async () => {
+      const updateDto: UpdateAreaDTO = { nombre: 'Ventas Actualizado' };
 
-      const updatedEntity: Area = {
-        id: '1',
-        nombre: 'Ventas Actualizado',
-        descripcion: 'Descripción original',
-      };
-
-      mockAreaRepository.update.mockResolvedValue(updatedEntity);
+      mockAreaRepository.update.mockResolvedValue(areaEntity);
 
       const result = await service.update('1', updateDto);
 
-      expect(mockAreaRepository.update.mock.calls[0][0]).toBe('1');
-      expect(mockAreaRepository.update.mock.calls[0][1]).toEqual(updateDto);
-      expect(result).toEqual({
-        id: '1',
-        nombre: 'Ventas Actualizado',
-        descripcion: 'Descripción original',
-      });
+      expect(mockAreaRepository.update).toHaveBeenCalledWith(
+        mapper.toAreaUpdateData('1', updateDto),
+      );
+      expect(result).toBe(true);
     });
   });
 
-  describe('softDelete', () => {
-    it('debe llamar al softDelete del repository', async () => {
-      mockAreaRepository.softDelete.mockResolvedValue({ affected: 1 });
+  describe('findAll', () => {
+    it('devuelve un array de AreaDTO', async () => {
+      mockAreaRepository.findAll.mockResolvedValue([areaEntity]);
 
-      const result = await service.softDelete('1');
+      const result = await service.findAll();
 
-      expect(mockAreaRepository.softDelete.mock.calls[0][0]).toBe('1');
-      expect(result).toEqual({ affected: 1 });
+      expect(mockAreaRepository.findAll).toHaveBeenCalled();
+      expect(result).toEqual([mapper.toAreaDto(areaEntity as never)]);
+    });
+  });
+
+  describe('findById', () => {
+    it('devuelve AreaDTO si existe', async () => {
+      mockAreaRepository.findById.mockResolvedValue(areaEntity);
+
+      const result = await service.findById('1');
+
+      expect(mockAreaRepository.findById).toHaveBeenCalledWith('1');
+      expect(result).toEqual(mapper.toAreaDto(areaEntity as never));
+    });
+
+    it('lanza NotFoundException si no existe', async () => {
+      mockAreaRepository.findById.mockResolvedValue(null);
+
+      await expect(service.findById('999')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findByNombre', () => {
+    it('devuelve AreaDTO si existe', async () => {
+      mockAreaRepository.findByName.mockResolvedValue(areaEntity);
+
+      const result = await service.findByNombre('Ventas');
+
+      expect(mockAreaRepository.findByName).toHaveBeenCalledWith('Ventas');
+      expect(result).toEqual(mapper.toAreaDto(areaEntity as never));
+    });
+
+    it('lanza NotFoundException si no existe', async () => {
+      mockAreaRepository.findByName.mockResolvedValue(null);
+
+      await expect(service.findByNombre('X')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('delete', () => {
+    it('elimina un area y devuelve true', async () => {
+      mockAreaRepository.delete.mockResolvedValue(true);
+
+      const result = await service.delete('1');
+
+      expect(mockAreaRepository.delete).toHaveBeenCalledWith('1');
+      expect(result).toBe(true);
     });
   });
 });

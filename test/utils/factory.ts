@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
-import { Role } from '../../src/common/enums/role.enum';
 import { Medidas } from '../../src/common/enums/medidas.enum';
+import { Role } from '../../src/common/enums/role.enum';
 import prisma from '../../src/lib/db';
 
 export const buildEmail = (prefix: string) =>
@@ -62,7 +62,10 @@ export async function createTipoProyecto() {
   });
 }
 
-export async function createProyecto(clienteId: string, tipoProyectoId: string) {
+export async function createProyecto(
+  clienteId: string,
+  tipoProyectoId: string,
+) {
   return prisma.proyecto.create({
     data: {
       nombre: buildName('Proyecto'),
