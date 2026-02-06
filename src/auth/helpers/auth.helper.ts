@@ -67,7 +67,16 @@ export class AuthHelper {
     contraseñaPlana: string,
   ): Promise<boolean> {
     try {
-      return await bcryptSafe.compare(contraseñaPlana, contraseñaHash);
+      const isValid = await bcryptSafe.compare(
+        contraseñaPlana,
+        contraseñaHash,
+      );
+
+      if (!isValid) {
+        throw new UnauthorizedException('Credenciales inválidas.');
+      }
+
+      return isValid;
     } catch {
       // En caso de algún error, lanzarlo como credenciales inválidas
       throw new UnauthorizedException('Credenciales inválidas.');

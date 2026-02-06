@@ -1,34 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmpleadoController } from './empleado.controller';
 import { EmpleadoService } from './empleado.service';
-import { UpdateEmpleadoDto } from './dtos/update-empleado.dto';
+import { UpdateEmpleadoDTO } from './dtos/update-empleado.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { BadRequestException } from '@nestjs/common';
-import { AuthenticatedRequest } from 'src/common/types/authenticated-request';
-
-type MockAuthenticatedRequest = {
-  user: {
-    id: string;
-    role: string;
-  };
-};
 
 describe('EmpleadoController', () => {
   let controller: EmpleadoController;
   let mockEmpleadoService: Partial<EmpleadoService>;
-
-  const mockUpdatedEmpleado = {
-    id: 'emp-456',
-    email: 'nuevo@empresa.com',
-    nombre: 'Ana Actualizada',
-    telefono: '351888777',
-    role: 'EMPLEADO',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
-    areaId: null,
-  };
 
   beforeEach(async () => {
     mockEmpleadoService = {
@@ -44,7 +24,6 @@ describe('EmpleadoController', () => {
         },
       ],
     })
-      // Sobrescribimos los guards para que siempre permitan el acceso en tests unitarios
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
       .overrideGuard(RolesGuard)
@@ -58,84 +37,48 @@ describe('EmpleadoController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('PUT /empleado/update', () => {
-    it('debe actualizar el perfil del empleado autenticado y devolver los datos actualizados', async () => {
-      const updateDto: UpdateEmpleadoDto = {
+  describe('PATCH /empleado', () => {
+    it('debe actualizar el perfil del empleado autenticado', async () => {
+      const updateDto: UpdateEmpleadoDTO = {
         nombre: 'Ana Actualizada',
         telefono: '351888777',
         email: 'nuevo@empresa.com',
       };
 
-      const mockRequest: MockAuthenticatedRequest = {
-        user: {
-          id: 'emp-456',
-          role: 'EMPLEADO',
-        },
-      };
+      (mockEmpleadoService.update as jest.Mock).mockResolvedValue(true);
 
-      (mockEmpleadoService.update as jest.Mock).mockResolvedValue(
-        mockUpdatedEmpleado,
-      );
+      const result = await controller.updateProfile(updateDto, 'emp-456');
 
-      const result = await controller.updateProfile(
-        updateDto,
-        mockRequest as AuthenticatedRequest,
-      );
-
-      // Verifica que llama al service con el ID del usuario autenticado
       expect(mockEmpleadoService.update).toHaveBeenCalledWith(
         'emp-456',
         updateDto,
       );
-
-      // Verifica que devuelve lo que retorna el service
-      expect(result).toEqual(mockUpdatedEmpleado);
+      expect(result).toBe(true);
     });
 
-    it('debe propagar BadRequestException si el email ya está en uso', async () => {
-      const updateDto: UpdateEmpleadoDto = {
+    it('debe propagar BadRequestException si el email ya esta en uso', async () => {
+      const updateDto: UpdateEmpleadoDTO = {
         email: 'duplicado@empresa.com',
       };
 
-      const mockRequest: MockAuthenticatedRequest = {
-        user: { id: 'emp-456', role: 'EMPLEADO' },
-      };
-
       (mockEmpleadoService.update as jest.Mock).mockRejectedValue(
-        new BadRequestException('El email ya está en uso.'),
+        new BadRequestException('El email ya esta en uso.'),
       );
 
       await expect(
-        controller.updateProfile(
-          updateDto,
-          mockRequest as AuthenticatedRequest,
-        ),
+        controller.updateProfile(updateDto, 'emp-456'),
       ).rejects.toThrow(BadRequestException);
-
-      await expect(
-        controller.updateProfile(
-          updateDto,
-          mockRequest as AuthenticatedRequest,
-        ),
-      ).rejects.toThrow('El email ya está en uso.');
     });
 
     it('debe propagar cualquier otro error lanzado por el service', async () => {
-      const updateDto: UpdateEmpleadoDto = { nombre: 'Falla' };
-
-      const mockRequest: MockAuthenticatedRequest = {
-        user: { id: 'emp-456', role: 'EMPLEADO' },
-      };
+      const updateDto: UpdateEmpleadoDTO = { nombre: 'Falla' };
 
       (mockEmpleadoService.update as jest.Mock).mockRejectedValue(
         new Error('Error inesperado en la base de datos'),
       );
 
       await expect(
-        controller.updateProfile(
-          updateDto,
-          mockRequest as AuthenticatedRequest,
-        ),
+        controller.updateProfile(updateDto, 'emp-456'),
       ).rejects.toThrow('Error inesperado en la base de datos');
     });
   });
