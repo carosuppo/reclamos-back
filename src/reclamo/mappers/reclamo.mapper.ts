@@ -1,4 +1,4 @@
-import { Estados, Reclamo } from '@prisma/client';
+﻿import { Estados, Reclamo } from '@prisma/client';
 import { CambioEstadoDTO } from '../../cambio-estado/dtos/cambio-estado.dto';
 import { Medidas } from '../../common/enums/medidas.enum';
 import { CreateReclamoDTO } from '../dtos/create-reclamo.dto';
@@ -14,7 +14,7 @@ import {
 import { ReclamoCompleto } from '../reclamo.type';
 
 export const ReclamoMapper = {
-  // Toma la información de la base de datos y la pasa a formato DTO
+  // Toma la informaciÃ³n de la base de datos y la pasa a formato DTO
   toReclamoDTO(reclamo: Reclamo): ReclamoDTO {
     return {
       id: reclamo.id,
@@ -34,6 +34,8 @@ export const ReclamoMapper = {
       criticidad: Medidas[reclamo.criticidad] as Medidas,
       descripcion: reclamo.descripcion,
       estado: reclamo.estado,
+      createdAt: reclamo.createdAt,
+      updatedAt: reclamo.updatedAt,
       tipoReclamo: {
         id: reclamo.tipoReclamo.id,
         nombre: reclamo.tipoReclamo.nombre,
@@ -49,7 +51,7 @@ export const ReclamoMapper = {
     };
   },
 
-  // Toma la información del DTO y la transforma al formato válido para su método (Crear reclamo)
+  // Toma la informaciÃ³n del DTO y la transforma al formato vÃ¡lido para su mÃ©todo (Crear reclamo)
   toReclamoCreateData(
     dto: CreateReclamoDTO,
     clienteId: string,
@@ -66,7 +68,7 @@ export const ReclamoMapper = {
     };
   },
 
-  // Toma la información del DTO y la transforma al formato valido para su método (Actualizar reclamo)
+  // Toma la informaciÃ³n del DTO y la transforma al formato valido para su mÃ©todo (Actualizar reclamo)
   toReclamoUpdateData(
     id: string,
     dto: UpdateReclamoDTO,
@@ -86,7 +88,7 @@ export const ReclamoMapper = {
     };
   },
 
-  // Toma la información del DTO y la transforma al formato valido para su método (Buscar reclamos por filtros)
+  // Toma la informaciÃ³n del DTO y la transforma al formato valido para su mÃ©todo (Buscar reclamos por filtros)
   toFiltrosReclamoData(dto: FiltersDTO): FiltrosReclamoData {
     return {
       estado: dto.estado ?? undefined,
@@ -96,3 +98,4 @@ export const ReclamoMapper = {
     };
   },
 };
+
