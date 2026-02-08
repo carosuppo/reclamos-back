@@ -1,4 +1,4 @@
-import { Estados } from '@prisma/client';
+﻿import { Estados } from '@prisma/client';
 import { Medidas } from '../../common/enums/medidas.enum';
 
 export class ReclamoCompletoDTO {
@@ -11,6 +11,10 @@ export class ReclamoCompletoDTO {
   descripcion: string;
 
   estado: Estados;
+
+  createdAt: Date;
+
+  updatedAt: Date;
 
   tipoReclamo: {
     id: string;
@@ -26,3 +30,4 @@ export class ReclamoCompletoDTO {
     };
   };
 }
+

@@ -6,6 +6,15 @@ import { Medidas } from 'src/common/enums/medidas.enum';
 async function main() {
   console.log('🌱 Iniciando seed completo de la base de datos...\n');
 
+  const randomDateWithinMonths = (months: number) => {
+    const now = new Date();
+    const maxDays = Math.max(1, Math.floor(months * 30));
+    const dayOffset = Math.floor(Math.random() * maxDays) + 1;
+    const result = new Date(now);
+    result.setDate(now.getDate() - dayOffset);
+    return result;
+  };
+
   // Limpiar todas las tablas en orden inverso de dependencias
   console.log('🧹 Limpiando datos existentes...');
   await prisma.cambioEstado.deleteMany({});
@@ -301,6 +310,10 @@ async function main() {
 
   // 7. Crear Reclamos
   console.log('📢 Creando reclamos...');
+  const reclamosBaseDates = Array.from(
+    { length: 10 },
+    () => randomDateWithinMonths(4),
+  ).sort((a, b) => a.getTime() - b.getTime());
   const reclamosData = [
     {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
@@ -310,6 +323,7 @@ async function main() {
       criticidad: Medidas.ALTA,
       descripcion:
         'Necesito modificar el formulario de reclamos para incluir un campo adicional de categoría.',
+      createdAt: reclamosBaseDates[0],
     },
     {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
@@ -319,6 +333,7 @@ async function main() {
       criticidad: Medidas.ALTA,
       descripcion:
         'Solicito agregar funcionalidad de notificaciones por email cuando se actualiza un reclamo.',
+      createdAt: reclamosBaseDates[1],
     },
     {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
@@ -328,6 +343,7 @@ async function main() {
       criticidad: Medidas.ALTA,
       descripcion:
         'El sistema de migración falla al transferir archivos mayores a 1GB.',
+      createdAt: reclamosBaseDates[2],
     },
     {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
@@ -336,6 +352,7 @@ async function main() {
       prioridad: Medidas.BAJA,
       criticidad: Medidas.MEDIA,
       descripcion: 'Cambiar el color del botón de pago en la aplicación móvil.',
+      createdAt: reclamosBaseDates[3],
     },
     {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
@@ -345,6 +362,7 @@ async function main() {
       criticidad: Medidas.ALTA,
       descripcion:
         'La aplicación se cierra inesperadamente al procesar pagos con tarjeta de crédito.',
+      createdAt: reclamosBaseDates[4],
     },
     {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
@@ -354,6 +372,7 @@ async function main() {
       criticidad: Medidas.MEDIA,
       descripcion:
         'Agregar reporte de vulnerabilidades encontradas en formato PDF.',
+      createdAt: reclamosBaseDates[5],
     },
     {
       tipoReclamoId: tiposReclamoCreados[3]?.id, // Otros
@@ -363,6 +382,7 @@ async function main() {
       criticidad: Medidas.BAJA,
       descripcion:
         'Solicito información sobre los horarios de atención del soporte técnico.',
+      createdAt: reclamosBaseDates[6],
     },
     {
       tipoReclamoId: tiposReclamoCreados[0]?.id, // Solicitud de Modificación
@@ -372,6 +392,7 @@ async function main() {
       criticidad: Medidas.ALTA,
       descripcion:
         'Modificar el formato de las gráficas en el dashboard para mejorar la visualización.',
+      createdAt: reclamosBaseDates[7],
     },
     {
       tipoReclamoId: tiposReclamoCreados[2]?.id, // Error Técnico
@@ -381,6 +402,7 @@ async function main() {
       criticidad: Medidas.ALTA,
       descripcion:
         'El algoritmo de IA no está aprendiendo correctamente de los datos de entrenamiento.',
+      createdAt: reclamosBaseDates[8],
     },
     {
       tipoReclamoId: tiposReclamoCreados[1]?.id, // Solicitud de Ampliación
@@ -390,6 +412,7 @@ async function main() {
       criticidad: Medidas.MEDIA,
       descripcion:
         'Agregar monitoreo en tiempo real del estado de los servidores.',
+      createdAt: reclamosBaseDates[9],
     },
   ];
 
@@ -423,8 +446,7 @@ async function main() {
       ? areasCreadas.find((a) => a.id === empleado.areaId) || areasCreadas[0]
       : areasCreadas[0];
 
-    const baseDate =
-      Date.now() - (reclamosCreados.length - i) * 24 * 60 * 60 * 1000;
+    const baseDate = reclamo.createdAt ?? reclamosBaseDates[i];
 
     // 🟡 PENDIENTE (siempre existe y SIEMPRE se cierra si hay otro estado)
     const pendienteInicio = new Date(baseDate);
