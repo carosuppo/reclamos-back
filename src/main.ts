@@ -10,7 +10,7 @@ async function bootstrap() {
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   app.enableCors({
-    origin: process.env.ORIGIN,
+    origin: process.env.ORIGIN_URL ?? 'https://pa-reclamos-front-git-codex-fix-7611a7-thomas-projects-1460765b.vercel.app',
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
     credentials: true,
