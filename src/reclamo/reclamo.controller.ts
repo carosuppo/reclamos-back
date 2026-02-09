@@ -95,12 +95,6 @@ export class ReclamoController {
     return this.service.findByArea(userId);
   }
 
-  @SwaggerFindById('Reclamo', ReclamoCompletoDTO)
-  @Get('/:id')
-  findById(@Param('id', ObjectIdPipe) id: string): Promise<ReclamoCompletoDTO> {
-    return this.service.findById(id);
-  }
-
   @SwaggerFindAll('Reclamos con filtros', ReclamoDTO)
   @Roles(Role.EMPLEADO) // Ingreso permitido sólo para empleados
   @Get('filtros')
@@ -120,5 +114,11 @@ export class ReclamoController {
   @Get('cantidad-promedio-resolucion')
   getCantProm(@Query('areaId', ObjectIdPipe) areaId: string): Promise<number> {
     return this.service.getCantProm(areaId);
+  }
+
+  @SwaggerFindById('Reclamo', ReclamoCompletoDTO)
+  @Get('/:id')
+  findById(@Param('id', ObjectIdPipe) id: string): Promise<ReclamoCompletoDTO> {
+    return this.service.findById(id);
   }
 }
