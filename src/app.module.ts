@@ -28,4 +28,4 @@ import { CambioEstadoModule } from './cambio-estado/cambio-estado.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

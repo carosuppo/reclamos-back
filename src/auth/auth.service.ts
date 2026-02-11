@@ -34,6 +34,7 @@ export class AuthService {
       // 1.2 Loguear como cliente
       return await this.helper.login(
         cliente.id,
+        dto.email,
         dto.contraseña,
         cliente.contraseña,
         Role.CLIENTE,
@@ -47,6 +48,7 @@ export class AuthService {
       // 2.2 Loguear como empleado
       return await this.helper.login(
         empleado.id,
+        dto.email,
         dto.contraseña,
         empleado.contraseña,
         Role.EMPLEADO,

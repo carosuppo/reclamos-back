@@ -1,7 +1,7 @@
-import prisma from '../../src/lib/db';
-import * as bcrypt from 'bcrypt';
 import { Estados } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { Medidas } from 'src/common/enums/medidas.enum';
+import prisma from '../../src/lib/db';
 
 async function main() {
   console.log('🌱 Iniciando seed completo de la base de datos...\n');
@@ -29,7 +29,7 @@ async function main() {
   // ═══════════════════════════════════════════════════════════════
   // 🔑 CONTRASEÑA PARA TODOS LOS USUARIOS: password123
   // ═══════════════════════════════════════════════════════════════
-  const PASSWORD_PLAIN = 'password123';
+  const PASSWORD_PLAIN = 'PASSword123';
   const defaultPasswordHash = await bcrypt.hash(PASSWORD_PLAIN, 10);
   console.log(`🔑 Contraseña para TODOS los usuarios: ${PASSWORD_PLAIN}\n`);
 
@@ -310,9 +310,8 @@ async function main() {
 
   // 7. Crear Reclamos
   console.log('📢 Creando reclamos...');
-  const reclamosBaseDates = Array.from(
-    { length: 10 },
-    () => randomDateWithinMonths(4),
+  const reclamosBaseDates = Array.from({ length: 10 }, () =>
+    randomDateWithinMonths(4),
   ).sort((a, b) => a.getTime() - b.getTime());
   const reclamosData = [
     {

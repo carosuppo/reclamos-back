@@ -42,11 +42,12 @@ export class AuthHelper {
     }
 
     // Devolver el token del usuario registrado
-    return this.firmarToken(user.id, rol);
+    return this.firmarToken(user.id, dto.email, rol);
   }
 
   async login(
     usuarioId: string, // ID usuario
+    email: string, // Email del usuario
     contraseñaDTO: string, // Contraseña ingresada por el usuario
     contraseñaUsuario: string, // Contraseña almacenada en la base de datos
     rol: Role, // Rol del usuario
@@ -54,7 +55,7 @@ export class AuthHelper {
     // Valida coincidencia entre las contraseñas
     await this.validarContraseña(contraseñaUsuario, contraseñaDTO);
     // Devuelve el token
-    return this.firmarToken(usuarioId, rol);
+    return this.firmarToken(usuarioId, email, rol);
   }
 
   async transformarContraseña(dto: RegisterDTO): Promise<void> {
@@ -76,9 +77,10 @@ export class AuthHelper {
 
   async firmarToken(
     id: string,
+    email: string,
     role: string,
   ): Promise<{ access_token: string }> {
-    const payload = { sub: id, role };
+    const payload = { sub: id, email, role };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
